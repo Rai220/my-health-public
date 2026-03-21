@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Генетический анализ — Визуализация</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #232736;
+  --border: #2e3348;
+  --text: #e4e6ed;
+  --text2: #9da3b4;
+  --accent: #6c8cff;
+  --accent2: #a78bfa;
+  --green: #34d399;
+  --yellow: #fbbf24;
+  --red: #f87171;
+  --orange: #fb923c;
+  --cyan: #22d3ee;
+  --pink: #f472b6;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
+.container { max-width:1400px; margin:0 auto; padding:20px; }
+h1 { font-size:1.8rem; margin-bottom:8px; color:var(--accent); }
+h2 { font-size:1.3rem; margin-bottom:12px; color:var(--text); border-bottom:1px solid var(--border); padding-bottom:8px; }
+h3 { font-size:1rem; margin-bottom:8px; color:var(--accent2); }
+.subtitle { color:var(--text2); font-size:.9rem; margin-bottom:24px; }
+
+/* Tabs */
+.tabs { display:flex; gap:4px; margin-bottom:24px; flex-wrap:wrap; border-bottom:2px solid var(--border); padding-bottom:0; }
+.tab { padding:10px 20px; cursor:pointer; border:none; background:transparent; color:var(--text2); font-size:.9rem; border-bottom:2px solid transparent; margin-bottom:-2px; transition:all .2s; }
+.tab:hover { color:var(--text); background:var(--surface); }
+.tab.active { color:var(--accent); border-bottom-color:var(--accent); background:var(--surface); }
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+
+/* Cards */
+.grid { display:grid; gap:16px; }
+.grid-2 { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); }
+.grid-3 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; }
+.card-sm { padding:16px; }
+
+/* Patient cards */
+.patient-header { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+.patient-avatar { width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.1rem; color:#fff; }
+.patient-avatar.p1 { background: linear-gradient(135deg, #6c8cff, #a78bfa); }
+.patient-avatar.p2 { background: linear-gradient(135deg, #f472b6, #fb923c); }
+.patient-meta { color:var(--text2); font-size:.85rem; }
+
+/* Tables */
+table { width:100%; border-collapse:collapse; font-size:.85rem; }
+th { text-align:left; padding:8px 10px; color:var(--text2); border-bottom:1px solid var(--border); font-weight:500; }
+td { padding:8px 10px; border-bottom:1px solid var(--border); }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:var(--surface2); }
+
+/* Badges */
+.badge { display:inline-block; padding:2px 8px; border-radius:6px; font-size:.75rem; font-weight:600; }
+.badge-green { background:rgba(52,211,153,.15); color:var(--green); }
+.badge-yellow { background:rgba(251,191,36,.15); color:var(--yellow); }
+.badge-red { background:rgba(248,113,113,.15); color:var(--red); }
+.badge-orange { background:rgba(251,146,60,.15); color:var(--orange); }
+.badge-blue { background:rgba(108,140,255,.15); color:var(--accent); }
+.badge-cyan { background:rgba(34,211,238,.15); color:var(--cyan); }
+.badge-pink { background:rgba(244,114,182,.15); color:var(--pink); }
+
+/* Chart containers */
+.chart-wrap { position:relative; height:300px; }
+.chart-wrap-lg { height:400px; }
+
+/* Pathway diagram */
+.pathway { display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:12px; background:var(--surface2); border-radius:8px; margin-bottom:12px; }
+.pathway-node { padding:8px 14px; border-radius:8px; font-size:.8rem; font-weight:600; text-align:center; min-width:80px; }
+.pathway-arrow { color:var(--text2); font-size:1.2rem; }
+.node-normal { background:rgba(52,211,153,.15); color:var(--green); border:1px solid rgba(52,211,153,.3); }
+.node-variant { background:rgba(251,191,36,.15); color:var(--yellow); border:1px solid rgba(251,191,36,.3); }
+.node-risk { background:rgba(248,113,113,.15); color:var(--red); border:1px solid rgba(248,113,113,.3); }
+.node-info { background:rgba(108,140,255,.15); color:var(--accent); border:1px solid rgba(108,140,255,.3); }
+
+/* System block */
+.system-block { margin-bottom:20px; }
+.system-title { display:flex; align-items:center; gap:8px; margin-bottom:10px; cursor:pointer; }
+.system-title .indicator { width:12px; height:12px; border-radius:50%; }
+.system-detail { padding-left:20px; }
+
+/* Heatmap */
+.heatmap-row { display:flex; align-items:center; margin-bottom:4px; }
+.heatmap-label { width:200px; font-size:.8rem; color:var(--text2); flex-shrink:0; }
+.heatmap-cells { display:flex; gap:4px; flex:1; }
+.heatmap-cell { width:100%; height:32px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:.7rem; font-weight:600; color:#fff; min-width:100px; }
+.heat-0 { background:rgba(52,211,153,.7); }
+.heat-1 { background:rgba(52,211,153,.4); }
+.heat-2 { background:rgba(251,191,36,.5); }
+.heat-3 { background:rgba(251,146,60,.6); }
+.heat-4 { background:rgba(248,113,113,.7); }
+
+/* Legend */
+.legend { display:flex; gap:16px; flex-wrap:wrap; margin:12px 0; font-size:.8rem; }
+.legend-item { display:flex; align-items:center; gap:6px; }
+.legend-dot { width:10px; height:10px; border-radius:3px; }
+
+/* Neuro diagram */
+.neuro-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:16px; }
+.neuro-card { background:var(--surface2); border-radius:10px; padding:16px; border-left:3px solid var(--accent); }
+.neuro-card.dopamine { border-left-color: var(--yellow); }
+.neuro-card.serotonin { border-left-color: var(--accent); }
+.neuro-card.norepinephrine { border-left-color: var(--orange); }
+.neuro-card.gaba { border-left-color: var(--green); }
+.neuro-card.hpa { border-left-color: var(--red); }
+.neuro-card.circadian { border-left-color: var(--accent2); }
+.neuro-card.neuropeptide { border-left-color: var(--cyan); }
+.neuro-card.thyroid { border-left-color: var(--pink); }
+
+.snp-row { display:flex; justify-content:space-between; align-items:center; padding:4px 0; font-size:.8rem; border-bottom:1px solid rgba(255,255,255,.05); }
+.snp-row:last-child { border-bottom:none; }
+.snp-name { color:var(--text2); }
+.snp-genotype { font-family: 'SF Mono', 'Fira Code', monospace; font-weight:600; }
+
+/* Comparison arrows */
+.compare-arrow { color:var(--text2); font-size:.7rem; margin:0 4px; }
+.compare-better { color:var(--green); }
+.compare-worse { color:var(--red); }
+.compare-same { color:var(--text2); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
+/* Tooltip */
+.tooltip-container { position:relative; cursor:help; }
+.tooltip-container .tooltip-text { visibility:hidden; position:absolute; bottom:125%; left:50%; transform:translateX(-50%); background:var(--surface2); border:1px solid var(--border); padding:8px 12px; border-radius:8px; font-size:.78rem; width:280px; z-index:100; color:var(--text); box-shadow:0 4px 12px rgba(0,0,0,.3); }
+.tooltip-container:hover .tooltip-text { visibility:visible; }
+
+@media (max-width: 768px) {
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .heatmap-label { width:120px; }
+  .heatmap-cell { min-width:60px; font-size:.6rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Генетический анализ — Визуализация</h1>
+  <p class="subtitle">Шаблон визуализации генетических данных — фармакогенетика, нейротрансмиттеры, сравнение пациентов</p>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('dashboard')">Обзор</button>
+    <button class="tab" onclick="switchTab('pharma')">Фармакогенетика</button>
+    <button class="tab" onclick="switchTab('neuro')">Нейросистемы</button>
+    <button class="tab" onclick="switchTab('compare')">Сравнение пациентов</button>
+    <button class="tab" onclick="switchTab('heatmap')">Карта рисков</button>
+  </div>
+
+  <!-- TAB: Dashboard -->
+  <div id="tab-dashboard" class="tab-content active">
+    <div class="grid grid-2">
+      <!-- Patient 1 -->
+      <div class="card">
+        <div class="patient-header">
+          <div class="patient-avatar p1">P1</div>
+          <div>
+            <strong>Пациент 1</strong>
+            <div class="patient-meta">Пример: N SNP, M клинически значимых</div>
+          </div>
+        </div>
+        <h3>Фармакогенетика</h3>
+        <table>
+          <tr><td>CYP2D6</td><td><span class="badge badge-green">Нормальный</span></td></tr>
+          <tr><td>CYP2C19</td><td><span class="badge badge-green">Нормальный</span></td></tr>
+          <tr><td>CYP1A2</td><td><span class="badge badge-yellow">Средний</span></td></tr>
+          <tr><td>CYP3A4</td><td><span class="badge badge-green">Нормальный</span></td></tr>
+        </table>
+        <h3 style="margin-top:12px">Ключевые системы</h3>
+        <table>
+          <tr><td>Дофамин (DRD2)</td><td><span class="badge badge-green">Норма</span></td></tr>
+          <tr><td>Серотонин (SERT)</td><td><span class="badge badge-green">Норма</span></td></tr>
+          <tr><td>ГАМК/глутамат</td><td><span class="badge badge-green">Норма</span></td></tr>
+          <tr><td>BDNF</td><td><span class="badge badge-green">Val/Val</span></td></tr>
+        </table>
+      </div>
+      <!-- Patient 2 -->
+      <div class="card">
+        <div class="patient-header">
+          <div class="patient-avatar p2">P2</div>
+          <div>
+            <strong>Пациент 2</strong>
+            <div class="patient-meta">Пример: N SNP</div>
+          </div>
+        </div>
+        <h3>Фармакогенетика</h3>
+        <table>
+          <tr><td>CYP2D6</td><td><span class="badge badge-yellow">Промежуточный</span></td></tr>
+          <tr><td>CYP2C19</td><td><span class="badge badge-blue">Быстрый</span></td></tr>
+          <tr><td>CYP1A2</td><td><span class="badge badge-yellow">Средний</span></td></tr>
+          <tr><td>CYP3A4</td><td><span class="badge badge-green">Нормальный</span></td></tr>
+        </table>
+        <h3 style="margin-top:12px">Ключевые системы</h3>
+        <table>
+          <tr><td>Дофамин (COMT)</td><td><span class="badge badge-yellow">Промежуточный</span></td></tr>
+          <tr><td>Серотонин (SERT)</td><td><span class="badge badge-green">Норма</span></td></tr>
+          <tr><td>P-гликопротеин</td><td><span class="badge badge-green">Норма</span></td></tr>
+          <tr><td>BDNF</td><td><span class="badge badge-green">Val/Val</span></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid grid-2" style="margin-top:16px;">
+      <div class="card">
+        <h2>Распределение SNP по системам</h2>
+        <div class="chart-wrap"><canvas id="chartSystems"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>Уровни доказательности</h2>
+        <div class="chart-wrap"><canvas id="chartEvidence"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Pharmacogenomics -->
+  <div id="tab-pharma" class="tab-content">
+    <div class="grid grid-2">
+      <div class="card">
+        <h2>CYP ферменты — сравнение</h2>
+        <div class="chart-wrap-lg chart-wrap"><canvas id="chartCYP"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>ABCB1 (P-гликопротеин) — ГЭБ</h2>
+        <div class="chart-wrap"><canvas id="chartABCB1"></canvas></div>
+        <div style="margin-top:12px;font-size:.85rem;color:var(--text2)">
+          P-гликопротеин влияет на проникновение препаратов через гематоэнцефалический барьер.
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2>Детальная фармакогенетика</h2>
+      <table>
+        <thead>
+          <tr><th>Фермент</th><th>SNP</th><th>Пациент 1</th><th>Пациент 2</th><th>Фенотип P1</th><th>Фенотип P2</th><th>Клиническое значение</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>CYP2D6</strong></td>
+            <td>rs3892097</td><td>CC</td><td>CC</td>
+            <td><span class="badge badge-green">Normal</span></td>
+            <td><span class="badge badge-green">Normal</span></td>
+            <td>Стандартные дозы CYP2D6-субстратов</td>
+          </tr>
+          <tr>
+            <td><strong>CYP2C19</strong></td>
+            <td>rs4244285</td><td>GG</td><td>GG</td>
+            <td><span class="badge badge-green">Normal</span></td>
+            <td><span class="badge badge-green">Normal</span></td>
+            <td>Стандартные дозы</td>
+          </tr>
+          <tr>
+            <td><strong>CYP1A2</strong></td>
+            <td>rs762551</td><td>AC</td><td>AC</td>
+            <td><span class="badge badge-yellow">Intermediate</span></td>
+            <td><span class="badge badge-yellow">Intermediate</span></td>
+            <td>Умеренный метаболизм кофеина</td>
+          </tr>
+          <tr>
+            <td><strong>CYP3A4</strong></td>
+            <td>rs2740574</td><td>TT</td><td>TT</td>
+            <td><span class="badge badge-green">Normal</span></td>
+            <td><span class="badge badge-green">Normal</span></td>
+            <td>Стандартные дозы</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2>Рекомендации по препаратам</h2>
+      <div class="grid grid-2">
+        <div>
+          <h3 style="color:var(--green)">Рекомендованы</h3>
+          <table>
+            <tr><td><strong>Препарат A</strong></td><td><span class="badge badge-green">Приоритет 1</span></td><td>Обоснование на основе генотипа</td></tr>
+            <tr><td><strong>Препарат B</strong></td><td><span class="badge badge-green">Приоритет 2</span></td><td>Обоснование на основе генотипа</td></tr>
+          </table>
+        </div>
+        <div>
+          <h3 style="color:var(--red)">Избегать</h3>
+          <table>
+            <tr><td><strong>Препарат C</strong></td><td><span class="badge badge-red">Избегать</span></td><td>Обоснование на основе генотипа</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Neurotransmitter Systems -->
+  <div id="tab-neuro" class="tab-content">
+    <p class="subtitle">Карта нейротрансмиттерных систем пациента с генотипами и клинической интерпретацией</p>
+
+    <div class="neuro-grid">
+      <!-- Dopamine -->
+      <div class="neuro-card dopamine">
+        <h3 style="color:var(--yellow);">Дофаминовая система</h3>
+        <p style="font-size:.8rem;color:var(--text2);margin-bottom:8px;">Вознаграждение / Мотивация / Внимание</p>
+        <div class="snp-row"><span class="snp-name">COMT rs4680 (Val158Met)</span><span class="snp-genotype badge badge-green">GG</span></div>
+        <div class="snp-row"><span class="snp-name">DRD2 rs1800497 (Taq1A)</span><span class="snp-genotype badge badge-green">GG</span></div>
+        <div class="snp-row"><span class="snp-name">DRD4 rs1800955</span><span class="snp-genotype badge badge-green">TT</span></div>
+        <div class="snp-row"><span class="snp-name">DAT1 rs27072</span><span class="snp-genotype badge badge-green">CC</span></div>
+        <div class="snp-row"><span class="snp-name">MAO-A rs6323</span><span class="snp-genotype badge badge-green">G</span></div>
+        <div class="snp-row"><span class="snp-name">DBH rs1611115</span><span class="snp-genotype badge badge-green">CC</span></div>
+        <p style="font-size:.78rem;color:var(--yellow);margin-top:8px;"><strong>Итог:</strong> Заполните по данным пациента</p>
+      </div>
+
+      <!-- Serotonin -->
+      <div class="neuro-card serotonin">
+        <h3 style="color:var(--accent);">Серотониновая система</h3>
+        <p style="font-size:.8rem;color:var(--text2);margin-bottom:8px;">Настроение / Тревога / Сон</p>
+        <div class="snp-row"><span class="snp-name">SLC6A4 rs1042173 (SERT)</span><span class="snp-genotype badge badge-green">GG</span></div>
+        <div class="snp-row"><span class="snp-name">HTR2A rs6313 (T102C)</span><span class="snp-genotype badge badge-green">AA</span></div>
+        <div class="snp-row"><span class="snp-name">HTR2A rs6311</span><span class="snp-genotype badge badge-green">TT</span></div>
+        <div class="snp-row"><span class="snp-name">HTR1B rs6296</span><span class="snp-genotype badge badge-green">GG</span></div>
+        <div class="snp-row"><span class="snp-name">TPH2 rs4570625</span><span class="snp-genotype badge badge-green">GG</span></div>
+        <p style="font-size:.78rem;color:var(--accent);margin-top:8px;"><strong>Итог:</strong> Заполните по данным пациента</p>
+      </div>
+
+      <!-- Norepinephrine -->
+      <div class="neuro-card norepinephrine">
+        <h3 style="color:var(--orange);">Норадреналиновая система</h3>
+        <p style="font-size:.8rem;color:var(--text2);margin-bottom:8px;">Внимание / Бдительность / Фокус</p>
+        <div class="snp-row"><span class="snp-name">ADRA2A rs1800545</span><span class="snp-genotype badge badge-green">GG</span></div>
+        <div class="snp-row"><span class="snp-name">ADRA2A rs11568817</span><span class="snp-genotype badge badge-green">AA</span></div>
+        <div class="snp-row"><span class="snp-name">SLC6A2 rs5569 (NET)</span><span class="snp-genotype badge badge-green">GG</span></div>
+        <p style="font-size:.78rem;color:var(--orange);margin-top:8px;"><strong>Итог:</strong> Заполните по данным пациента</p>
+      </div>
+
+      <!-- GABA/Glutamate -->
+      <div class="neuro-card gaba">
+        <h3 style="color:var(--green);">ГАМК / Глутамат</h3>
+        <p style="font-size:.8rem;color:var(--text2);margin-bottom:8px;">Торможение / Возбуждение / Баланс</p>
+        <div class="snp-row"><span class="snp-name">GAD1 rs2241165</span><span class="snp-genotype badge badge-green">TT</span></div>
+        <div class="snp-row"><span class="snp-name">GABRA2 rs279858</span><span class="snp-genotype badge badge-green">TT</span></div>
+        <div class="snp-row"><span class="snp-name">GABRG2 rs211037</span><span class="snp-genotype badge badge-green">TT</span></div>
+        <div class="snp-row"><span class="snp-name">GRIN2A rs1014531</span><span class="snp-genotype badge badge-green">AA</span></div>
+        <p style="font-size:.78rem;color:var(--green);margin-top:8px;"><strong>Итог:</strong> Заполните по данным пациента</p>
+      </div>
+
+      <!-- HPA axis -->
+      <div class="neuro-card hpa">
+        <h3 style="color:var(--red);">HPA-ось (стресс)</h3>
+        <p style="font-size:.8rem;color:var(--text2);margin-bottom:8px;">Кортизол / Стресс-ответ</p>
+        <div class="snp-row"><span class="snp-name">FKBP5</span><span class="snp-genotype badge badge-green">Норма</span></div>
+        <div class="snp-row"><span class="snp-name">NR3C1 rs41423247 (BclI)</span><span class="snp-genotype badge badge-green">CC</span></div>
+        <div class="snp-row"><span class="snp-name">CRHR1 rs110402</span><span class="snp-genotype badge badge-green">AA</span></div>
+        <div class="snp-row"><span class="snp-name">NPSR1 rs324981</span><span class="snp-genotype badge badge-green">CC</span></div>
+        <p style="font-size:.78rem;color:var(--red);margin-top:8px;"><strong>Итог:</strong> Заполните по данным пациента</p>
+      </div>
+
+      <!-- Circadian -->
+      <div class="neuro-card circadian">
+        <h3 style="color:var(--accent2);">Циркадианный ритм</h3>
+        <p style="font-size:.8rem;color:var(--text2);margin-bottom:8px;">Сон / Мелатонин / Ритмы</p>
+        <div class="snp-row"><span class="snp-name">MTNR1B rs10830963</span><span class="snp-genotype badge badge-green">CC</span></div>
+        <div class="snp-row"><span class="snp-name">CLOCK rs1801260</span><span class="snp-genotype badge badge-green">AA</span></div>
+        <div class="snp-row"><span class="snp-name">PER2 rs2304672</span><span class="snp-genotype badge badge-green">GG</span></div>
+        <div class="snp-row"><span class="snp-name">PER3 rs228697</span><span class="snp-genotype badge badge-green">CC</span></div>
+        <p style="font-size:.78rem;color:var(--accent2);margin-top:8px;"><strong>Итог:</strong> Заполните по данным пациента</p>
+      </div>
+
+      <!-- Thyroid -->
+      <div class="neuro-card thyroid">
+        <h3 style="color:var(--pink);">Тиреоидная система</h3>
+        <p style="font-size:.8rem;color:var(--text2);margin-bottom:8px;">T4→T3 конверсия / Энергия</p>
+        <div class="snp-row"><span class="snp-name">DIO2 rs225014 (Thr92Ala)</span><span class="snp-genotype badge badge-green">TT</span></div>
+        <div class="snp-row"><span class="snp-name">DIO1 rs11206244</span><span class="snp-genotype badge badge-green">TT</span></div>
+        <div class="snp-row"><span class="snp-name">TSHR rs179247</span><span class="snp-genotype badge badge-green">AA</span></div>
+        <p style="font-size:.78rem;color:var(--pink);margin-top:8px;"><strong>Итог:</strong> Заполните по данным пациента</p>
+      </div>
+
+      <!-- Neuropeptides -->
+      <div class="neuro-card neuropeptide">
+        <h3 style="color:var(--cyan);">Нейропептиды и пластичность</h3>
+        <p style="font-size:.8rem;color:var(--text2);margin-bottom:8px;">Стрессоустойчивость / BDNF / Эндоканнабиноиды</p>
+        <div class="snp-row"><span class="snp-name">NPY rs16139</span><span class="snp-genotype badge badge-green">TT</span></div>
+        <div class="snp-row"><span class="snp-name">OXTR rs53576</span><span class="snp-genotype badge badge-green">GG</span></div>
+        <div class="snp-row"><span class="snp-name">BDNF rs6265 (Val66Met)</span><span class="snp-genotype badge badge-green">CC (Val/Val)</span></div>
+        <div class="snp-row"><span class="snp-name">CNR1 rs1049353</span><span class="snp-genotype badge badge-green">CC</span></div>
+        <div class="snp-row"><span class="snp-name">FAAH rs324420</span><span class="snp-genotype badge badge-green">CC</span></div>
+        <p style="font-size:.78rem;color:var(--cyan);margin-top:8px;"><strong>Итог:</strong> Заполните по данным пациента</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2>Сигнальные пути — схема взаимодействий</h2>
+      <div style="margin-bottom:12px;">
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Норма</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div> Умеренная вариация</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div> Значимая вариация</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Риск-вариант</div>
+        </div>
+      </div>
+
+      <h3>Дофаминовый путь</h3>
+      <div class="pathway">
+        <div class="pathway-node node-normal">TH<br><small>Тирозин-гидроксилаза</small></div>
+        <div class="pathway-arrow">→</div>
+        <div class="pathway-node node-info">L-DOPA → DA</div>
+        <div class="pathway-arrow">→</div>
+        <div class="pathway-node node-normal">COMT<br><small>Деградация</small></div>
+        <div class="pathway-arrow">→</div>
+        <div class="pathway-node node-normal">MAO-A<br><small>Распад</small></div>
+        <div class="pathway-arrow">|</div>
+        <div class="pathway-node node-normal">DBH<br><small>DA→NE</small></div>
+        <div class="pathway-arrow">→</div>
+        <div class="pathway-node node-normal">DRD2<br><small>Рецептор</small></div>
+      </div>
+
+      <h3>Серотониновый путь</h3>
+      <div class="pathway">
+        <div class="pathway-node node-normal">TPH1/2<br><small>Синтез</small></div>
+        <div class="pathway-arrow">→</div>
+        <div class="pathway-node node-info">Trp → 5-HT</div>
+        <div class="pathway-arrow">→</div>
+        <div class="pathway-node node-normal">SERT<br><small>Транспортер</small></div>
+        <div class="pathway-arrow">→</div>
+        <div class="pathway-node node-normal">HTR2A<br><small>Рецептор</small></div>
+        <div class="pathway-arrow">|</div>
+        <div class="pathway-node node-normal">MAO-A<br><small>Распад</small></div>
+      </div>
+
+      <h3>ГАМК / Глутамат</h3>
+      <div class="pathway">
+        <div class="pathway-node node-info">Глутамат</div>
+        <div class="pathway-arrow">→</div>
+        <div class="pathway-node node-normal">GAD1<br><small>Конверсия</small></div>
+        <div class="pathway-arrow">→</div>
+        <div class="pathway-node node-info">ГАМК</div>
+        <div class="pathway-arrow">→</div>
+        <div class="pathway-node node-normal">GABRA2<br><small>α2 рецептор</small></div>
+        <div class="pathway-arrow">+</div>
+        <div class="pathway-node node-normal">GABRG2<br><small>γ2 рецептор</small></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Compare patients -->
+  <div id="tab-compare" class="tab-content">
+    <div class="grid grid-2">
+      <div class="card">
+        <h2>Нейромедиаторный профиль</h2>
+        <div class="chart-wrap-lg chart-wrap"><canvas id="chartCompareNeuro"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>Фармакогенетический профиль</h2>
+        <div class="chart-wrap-lg chart-wrap"><canvas id="chartComparePharma"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2>Ключевые различия между пациентами</h2>
+      <table>
+        <thead>
+          <tr><th>Параметр</th><th>Пациент 1</th><th>Пациент 2</th><th>Значимость</th><th>Клиническое значение</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>COMT rs4680</strong></td>
+            <td>GG (Val/Val)</td>
+            <td>GG (Val/Val)</td>
+            <td><span class="badge badge-green">Одинаково</span></td>
+            <td>Пример: одинаковый метаболизм катехоламинов</td>
+          </tr>
+          <tr>
+            <td><strong>CYP2D6</strong></td>
+            <td>Нормальный</td>
+            <td>Нормальный</td>
+            <td><span class="badge badge-green">Одинаково</span></td>
+            <td>Пример: стандартные дозы</td>
+          </tr>
+          <tr>
+            <td><strong>SLC6A4 (SERT)</strong></td>
+            <td>GG</td>
+            <td>GG</td>
+            <td><span class="badge badge-green">Одинаково</span></td>
+            <td>Пример: стандартный ответ на SSRI</td>
+          </tr>
+          <tr>
+            <td><strong>BDNF rs6265</strong></td>
+            <td>CC (Val/Val)</td>
+            <td>CC (Val/Val)</td>
+            <td><span class="badge badge-green">Оба нормально</span></td>
+            <td>Хорошая нейропластичность у обоих</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB: Heatmap -->
+  <div id="tab-heatmap" class="tab-content">
+    <div class="card">
+      <h2>Карта генетических рисков</h2>
+      <p class="subtitle">Системная оценка: 0 — норма, 4 — максимальный риск / отклонение</p>
+
+      <div class="legend" style="margin-bottom:16px;">
+        <div class="legend-item"><div class="legend-dot heat-0" style="width:20px;height:14px;border-radius:3px;"></div> Норма</div>
+        <div class="legend-item"><div class="legend-dot heat-1" style="width:20px;height:14px;border-radius:3px;"></div> Незначительно</div>
+        <div class="legend-item"><div class="legend-dot heat-2" style="width:20px;height:14px;border-radius:3px;"></div> Умеренно</div>
+        <div class="legend-item"><div class="legend-dot heat-3" style="width:20px;height:14px;border-radius:3px;"></div> Значительно</div>
+        <div class="legend-item"><div class="legend-dot heat-4" style="width:20px;height:14px;border-radius:3px;"></div> Высокий риск</div>
+      </div>
+
+      <div id="heatmapContainer"></div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2>Уровни доказательности по системам</h2>
+      <div class="chart-wrap-lg chart-wrap"><canvas id="chartEvidenceBySys"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Tab switching
+function switchTab(id) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// Chart defaults
+Chart.defaults.color = '#9da3b4';
+Chart.defaults.borderColor = '#2e3348';
+Chart.defaults.font.family = "'Inter', -apple-system, sans-serif";
+
+// Dashboard: Systems pie
+new Chart(document.getElementById('chartSystems'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Дофамин', 'Серотонин', 'Норадреналин', 'ГАМК/Глутамат', 'HPA-ось', 'Циркадианные', 'Тиреоидные', 'Нейропептиды', 'Фармакокинетика', 'Другие'],
+    datasets: [{
+      data: [9, 9, 4, 8, 9, 5, 6, 7, 12, 5],
+      backgroundColor: ['#fbbf24','#6c8cff','#fb923c','#34d399','#f87171','#a78bfa','#f472b6','#22d3ee','#818cf8','#94a3b8'],
+      borderWidth: 0
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'right', labels: { boxWidth: 12, padding: 8, font: { size: 11 } } }
+    }
+  }
+});
+
+// Dashboard: Evidence levels
+new Chart(document.getElementById('chartEvidence'), {
+  type: 'bar',
+  data: {
+    labels: ['Высокий', 'Средний-Высокий', 'Средний', 'Низкий-Средний', 'Клинический'],
+    datasets: [{
+      label: 'Количество находок',
+      data: [2, 4, 8, 4, 2],
+      backgroundColor: ['#34d399','#6c8cff','#fbbf24','#fb923c','#a78bfa'],
+      borderWidth: 0,
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    indexAxis: 'y',
+    plugins: { legend: { display: false } },
+    scales: { x: { grid: { display: false } } }
+  }
+});
+
+// Pharma: CYP comparison
+new Chart(document.getElementById('chartCYP'), {
+  type: 'bar',
+  data: {
+    labels: ['CYP2D6', 'CYP2C19', 'CYP1A2', 'CYP3A4'],
+    datasets: [
+      { label: 'Пациент 1', data: [3, 3, 2, 3], backgroundColor: 'rgba(108,140,255,.7)', borderRadius: 4 },
+      { label: 'Пациент 2', data: [3, 3, 2, 3], backgroundColor: 'rgba(244,114,182,.7)', borderRadius: 4 }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: {
+        callbacks: {
+          label: function(ctx) {
+            const labels = {1:'Медленный', 2:'Промежуточный', 3:'Нормальный', 4:'Быстрый', 5:'Ультрабыстрый'};
+            return ctx.dataset.label + ': ' + (labels[ctx.raw] || ctx.raw);
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        min: 0, max: 5,
+        ticks: {
+          callback: v => ({1:'Медленный', 2:'Промежуточный', 3:'Нормальный', 4:'Быстрый', 5:'Ультрабыстрый'}[v] || '')
+        }
+      }
+    }
+  }
+});
+
+// Pharma: ABCB1
+new Chart(document.getElementById('chartABCB1'), {
+  type: 'radar',
+  data: {
+    labels: ['rs1045642', 'rs2032582', 'rs1128503'],
+    datasets: [
+      { label: 'Пациент 1', data: [1, 1, 1], borderColor: '#6c8cff', backgroundColor: 'rgba(108,140,255,.2)', pointBackgroundColor: '#6c8cff' },
+      { label: 'Пациент 2', data: [1, 1, 1], borderColor: '#f472b6', backgroundColor: 'rgba(244,114,182,.2)', pointBackgroundColor: '#f472b6' }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      r: {
+        min: 0, max: 3,
+        ticks: { display: false },
+        pointLabels: { font: { size: 11 } },
+        grid: { color: '#2e3348' },
+        angleLines: { color: '#2e3348' }
+      }
+    },
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const map = {1:'Норма (GG/CC)', 2:'Гетерозигота (AG)', 3:'Вариант (AA)'};
+            return ctx.dataset.label + ': ' + (map[ctx.raw] || ctx.raw);
+          }
+        }
+      }
+    }
+  }
+});
+
+// Compare: Neurotransmitter radar
+new Chart(document.getElementById('chartCompareNeuro'), {
+  type: 'radar',
+  data: {
+    labels: ['Дофамин\n(D2)', 'COMT\n(ПФК)', 'Серотонин\n(SERT)', '5-HT2A\n(тревога)', 'Импульсивность\n(HTR1B)', 'ГАМК/Глутамат', 'Нейропластичность\n(BDNF)', 'Стресс\n(HPA)'],
+    datasets: [
+      {
+        label: 'Пациент 1',
+        data: [4, 4, 4, 4, 4, 4, 5, 4],
+        borderColor: '#6c8cff',
+        backgroundColor: 'rgba(108,140,255,.15)',
+        pointBackgroundColor: '#6c8cff'
+      },
+      {
+        label: 'Пациент 2',
+        data: [4, 4, 4, 4, 4, 4, 5, 4],
+        borderColor: '#f472b6',
+        backgroundColor: 'rgba(244,114,182,.15)',
+        pointBackgroundColor: '#f472b6'
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      r: {
+        min: 0, max: 5,
+        ticks: { display: false, stepSize: 1 },
+        pointLabels: { font: { size: 10 } },
+        grid: { color: '#2e3348' },
+        angleLines: { color: '#2e3348' }
+      }
+    },
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const map = {1:'Выраженное отклонение', 2:'Умеренное отклонение', 3:'Незначительное', 4:'Близко к норме', 5:'Норма'};
+            return ctx.dataset.label + ': ' + (map[ctx.raw] || ctx.raw);
+          }
+        }
+      }
+    }
+  }
+});
+
+// Compare: Pharma radar
+new Chart(document.getElementById('chartComparePharma'), {
+  type: 'radar',
+  data: {
+    labels: ['CYP2D6\nметаболизм', 'CYP2C19\nметаболизм', 'P-гликопротеин\n(ГЭБ)', 'SSRI\nответ', 'Опиоидная\nчувствительность', 'Метилирование\n(MTHFR)'],
+    datasets: [
+      {
+        label: 'Пациент 1',
+        data: [5, 4, 4, 4, 5, 5],
+        borderColor: '#6c8cff',
+        backgroundColor: 'rgba(108,140,255,.15)',
+        pointBackgroundColor: '#6c8cff'
+      },
+      {
+        label: 'Пациент 2',
+        data: [5, 4, 4, 4, 5, 5],
+        borderColor: '#f472b6',
+        backgroundColor: 'rgba(244,114,182,.15)',
+        pointBackgroundColor: '#f472b6'
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      r: {
+        min: 0, max: 5,
+        ticks: { display: false, stepSize: 1 },
+        pointLabels: { font: { size: 10 } },
+        grid: { color: '#2e3348' },
+        angleLines: { color: '#2e3348' }
+      }
+    },
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const map = {1:'Выраженное отклонение', 2:'Значительная вариация', 3:'Умеренная вариация', 4:'Незначительная вариация', 5:'Норма'};
+            return ctx.dataset.label + ': ' + (map[ctx.raw] || ctx.raw);
+          }
+        }
+      }
+    }
+  }
+});
+
+// Heatmap
+const heatmapData = [
+  { label: 'Дофамин (DRD2)', scores: [0, 0], tooltips: ['Пример: GG — норма', 'Пример: GG — норма'] },
+  { label: 'Дофамин (COMT)', scores: [0, 0], tooltips: ['Пример: GG Val/Val', 'Пример: GG Val/Val'] },
+  { label: 'MAO-A (распад)', scores: [0, 0], tooltips: ['Пример: G — нормальная активность', 'Пример: данные'] },
+  { label: 'Серотонин (SERT)', scores: [0, 0], tooltips: ['Пример: GG — норма', 'Пример: GG — норма'] },
+  { label: 'HTR2A (тревога)', scores: [0, 0], tooltips: ['Пример: TT — норма', 'Пример: TT — норма'] },
+  { label: 'Импульсивность (HTR1B)', scores: [0, 0], tooltips: ['Пример: GG', 'Пример: GG'] },
+  { label: 'ГАМК/Глутамат', scores: [0, 0], tooltips: ['Пример: GAD1 TT', 'Пример: данные'] },
+  { label: 'Норадреналин (ADRA2A)', scores: [0, 0], tooltips: ['Пример: AA', 'Пример: AA'] },
+  { label: 'HPA-ось', scores: [0, 0], tooltips: ['Пример: в целом норма', 'Пример: данные'] },
+  { label: 'Циркадианные', scores: [0, 0], tooltips: ['Пример: MTNR1B CC', 'Пример: данные'] },
+  { label: 'Тиреоидные (DIO2)', scores: [0, 0], tooltips: ['Пример: TT — норма', 'Пример: данные'] },
+  { label: 'Нейропластичность (BDNF)', scores: [0, 0], tooltips: ['CC Val/Val', 'CC Val/Val'] },
+  { label: 'P-гликопротеин (ГЭБ)', scores: [0, 0], tooltips: ['Пример: GG/CC/GG', 'Пример: данные'] },
+  { label: 'CYP2D6', scores: [0, 0], tooltips: ['Нормальный', 'Нормальный'] },
+  { label: 'CYP2C19', scores: [0, 0], tooltips: ['Нормальный', 'Нормальный'] },
+  { label: 'MTHFR', scores: [0, 0], tooltips: ['Пример: TT — норма', 'Пример: TT — норма'] },
+  { label: 'VDR (витамин D)', scores: [0, 0], tooltips: ['Пример: данные', 'Пример: данные'] },
+];
+
+const heatmapContainer = document.getElementById('heatmapContainer');
+const heatLabels = ['Норма','Незначит.','Умеренно','Значит.','Высокий риск'];
+
+// Header
+const headerRow = document.createElement('div');
+headerRow.className = 'heatmap-row';
+headerRow.innerHTML = '<div class="heatmap-label" style="font-weight:600;color:var(--text);">Система</div><div class="heatmap-cells"><div class="heatmap-cell" style="background:transparent;color:var(--accent);font-weight:600;">Пациент 1</div><div class="heatmap-cell" style="background:transparent;color:var(--pink);font-weight:600;">Пациент 2</div></div>';
+heatmapContainer.appendChild(headerRow);
+
+heatmapData.forEach(row => {
+  const el = document.createElement('div');
+  el.className = 'heatmap-row';
+  const cells = row.scores.map((s, i) => {
+    const label = s === 0 ? (row.tooltips[i] === 'Нет данных' ? '—' : 'Норма') : heatLabels[s];
+    const cls = row.tooltips[i] === 'Нет данных' ? '' : 'heat-' + s;
+    return `<div class="heatmap-cell ${cls}" title="${row.tooltips[i]}">${label}</div>`;
+  }).join('');
+  el.innerHTML = `<div class="heatmap-label">${row.label}</div><div class="heatmap-cells">${cells}</div>`;
+  heatmapContainer.appendChild(el);
+});
+
+// Evidence by system
+new Chart(document.getElementById('chartEvidenceBySys'), {
+  type: 'bar',
+  data: {
+    labels: ['CYP2D6/2C19', 'DRD2 (ПЭТ)', 'BDNF', 'DIO2', 'MTNR1B', 'MAO-A', 'NPSR1', 'HTR2A', 'SLC6A4', 'ADRA2A', 'ГАМК-система', 'NR3C1/NR3C2', 'VDR'],
+    datasets: [{
+      label: 'Уровень доказательности',
+      data: [5, 4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2],
+      backgroundColor: function(ctx) {
+        const v = ctx.raw;
+        if (v >= 4) return 'rgba(52,211,153,.7)';
+        if (v >= 3) return 'rgba(108,140,255,.7)';
+        return 'rgba(251,191,36,.7)';
+      },
+      borderRadius: 4
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const map = {5:'Высокий (CPIC/мета-анализы)', 4:'Средний-Высокий (ПЭТ/GWAS)', 3:'Средний (ассоциации)', 2:'Низкий-Средний', 1:'Низкий'};
+            return map[ctx.raw] || ctx.raw;
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        min: 0, max: 5,
+        ticks: {
+          callback: v => ({1:'Низкий', 2:'Низкий-Средний', 3:'Средний', 4:'Средний-Высокий', 5:'Высокий'}[v] || '')
+        }
+      },
+      x: { ticks: { font: { size: 10 }, maxRotation: 45 } }
+    }
+  }
+});
+</script>
+</body>
+</html>
