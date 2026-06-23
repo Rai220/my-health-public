@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Отчёт для врача — ИМЯ, ДАТА</title>
+<style>
+  @media print {
+    body { font-size: 11pt; }
+    .page-break { page-break-before: always; }
+    h1 { font-size: 16pt; }
+    h2 { font-size: 13pt; }
+    h3 { font-size: 11pt; }
+    .no-print { display: none; }
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #1a1a1a;
+    max-width: 210mm;
+    margin: 0 auto;
+    padding: 12mm 15mm;
+    background: #fff;
+  }
+
+  h1 {
+    font-size: 18px;
+    margin-bottom: 2px;
+    color: #111;
+    border-bottom: 2px solid #333;
+    padding-bottom: 4px;
+  }
+
+  .subtitle {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 14px;
+  }
+
+  h2 {
+    font-size: 14px;
+    color: #222;
+    margin-top: 16px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 2px;
+  }
+
+  h3 {
+    font-size: 13px;
+    color: #333;
+    margin-top: 10px;
+    margin-bottom: 4px;
+  }
+
+  /* Карточка пациента */
+  .patient-card {
+    background: #f7f7f7;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .patient-card .name { font-size: 16px; font-weight: 700; }
+  .patient-card .details { font-size: 12px; color: #555; }
+
+  /* Блоки акцентов */
+  .request-box {
+    background: #eef6ff;
+    border-left: 4px solid #3b82f6;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    border-radius: 0 4px 4px 0;
+  }
+
+  .warn-box {
+    background: #fff8e1;
+    border-left: 4px solid #f59e0b;
+    padding: 8px 12px;
+    margin: 8px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 12px;
+  }
+
+  .danger-box {
+    background: #fef2f2;
+    border-left: 4px solid #ef4444;
+    padding: 8px 12px;
+    margin: 8px 0;
+    border-radius: 0 4px 4px 0;
+  }
+
+  /* Таблицы */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0;
+    font-size: 12px;
+  }
+
+  th, td {
+    border: 1px solid #ddd;
+    padding: 4px 8px;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    background: #f5f5f5;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: #555;
+  }
+
+  tr:nth-child(even) { background: #fafafa; }
+
+  /* Списки */
+  ul, ol { margin-left: 18px; margin-bottom: 6px; }
+  li { margin-bottom: 2px; }
+
+  /* Теги статусов */
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .tag-works { background: #d1fae5; color: #065f46; }
+  .tag-fail { background: #fee2e2; color: #991b1b; }
+  .tag-maybe { background: #fef3c7; color: #92400e; }
+  .tag-high { background: #dbeafe; color: #1e40af; }
+
+  /* Двухколоночная раскладка */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* Нумерованные вопросы */
+  .questions ol { counter-reset: q; list-style: none; margin-left: 0; }
+  .questions ol li { counter-increment: q; padding-left: 22px; position: relative; margin-bottom: 4px; }
+  .questions ol li::before {
+    content: counter(q);
+    position: absolute; left: 0;
+    width: 16px; height: 16px;
+    background: #3b82f6; color: #fff;
+    border-radius: 50%;
+    font-size: 10px; font-weight: 700;
+    text-align: center; line-height: 16px;
+    top: 2px;
+  }
+
+  /* Футер */
+  .footer {
+    margin-top: 20px;
+    padding-top: 6px;
+    border-top: 1px solid #ddd;
+    font-size: 10px;
+    color: #999;
+  }
+</style>
+</head>
+<body>
+
+<!--
+  ШАБЛОН ОТЧЁТА ДЛЯ ВРАЧА
+  =========================
+  Формат: reports/YYYY-MM-DD_specialist.html
+  Пример: reports/2026-03-25_psychiatrist.html
+
+  Использование:
+  1. Скопировать этот файл в папку пациента: patient/reports/
+  2. Переименовать: YYYY-MM-DD_специалист.html
+  3. Заполнить секции ниже
+  4. Открыть в браузере → Ctrl+P для печати (A4)
+
+  Стили оптимизированы для печати на A4.
+  Класс .page-break создаёт разрыв страницы при печати.
+  Класс .no-print скрывает элемент при печати.
+-->
+
+<h1>Сводка для [специалиста]</h1>
+<div class="subtitle">Дата визита: ДД месяц ГГГГ</div>
+
+<div class="patient-card">
+  <div>
+    <div class="name">ИМЯ</div>
+    <div class="details">Пол, возраст (дата рождения)</div>
+  </div>
+  <div class="details" style="text-align:right">
+    Рост &middot; Вес<br>
+    Доп. информация
+  </div>
+</div>
+
+<div class="request-box">
+  <p><strong>Запрос пациента:</strong> описать цель визита</p>
+</div>
+
+<!-- Секции: жалобы, диагнозы, анамнез, генетика, назначения, вопросы -->
+<!-- Используйте структуру из реального отчёта как образец -->
+
+<h2>Жалобы</h2>
+<ul>
+  <li>...</li>
+</ul>
+
+<h2>Диагнозы</h2>
+<table>
+  <tr><th>Диагноз</th><th>Статус</th><th>Примечание</th></tr>
+  <tr><td>...</td><td>...</td><td>...</td></tr>
+</table>
+
+<h2>Фармакологический анамнез</h2>
+<!-- .tag-works / .tag-fail / .tag-maybe для статусов -->
+
+<h2>Просьба назначить</h2>
+<table>
+  <tr><th>Препарат</th><th>Режим</th><th>Обоснование</th></tr>
+  <tr><td>...</td><td>...</td><td>...</td></tr>
+</table>
+
+<div class="danger-box">
+  <strong>НЕ назначать:</strong> ...
+</div>
+
+<h2>Вопросы</h2>
+<div class="questions">
+  <ol>
+    <li>...</li>
+  </ol>
+</div>
+
+<div class="footer">
+  Ссылки на полные документы
+</div>
+
+</body>
+</html>

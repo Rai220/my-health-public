@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>КК — Генетический билд · Дашборд персонажа v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060810; --bg2:#0c1020; --panel:#101529; --panel2:#151c34;
+  --border:#243056; --border2:#34457e;
+  --text:#eaeefb; --text2:#9aa6cc; --text3:#5f6c96;
+  --accent:#5ee0ff; --accent2:#a78bff;
+  --good:#37e2a0; --cand:#ffd24a; --bad:#ff6b8a; --avoid:#ff4d4d; --special:#ff9d3c;
+  --leg:#f5c451; --epic:#c08bff; --rare:#4aa3ff; --unc:#5ee08a; --clin:#37dbe2;
+  --shadow:0 10px 34px rgba(0,0,0,.5);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Rajdhani','Segoe UI',-apple-system,sans-serif;
+  background:
+    radial-gradient(1200px 620px at 82% -12%, rgba(94,224,255,.12), transparent 60%),
+    radial-gradient(1000px 520px at -5% 0%, rgba(167,139,255,.12), transparent 55%),
+    var(--bg);
+  color:var(--text); line-height:1.45; min-height:100vh; padding:18px; letter-spacing:.2px;
+}
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.55;
+  background:
+    linear-gradient(rgba(94,224,255,.025) 1px, transparent 1px) 0 0/100% 3px,
+    linear-gradient(90deg, rgba(36,48,86,.16) 1px, transparent 1px) 0 0/46px 100%;
+  mix-blend-mode:screen;
+}
+.wrap{max-width:1560px;margin:0 auto;position:relative;z-index:1}
+.font-display{font-family:'Orbitron','Rajdhani',sans-serif}
+.eyebrow{font-family:'Orbitron',sans-serif;font-size:.62rem;letter-spacing:3px;color:var(--accent);text-transform:uppercase}
+
+/* ===== HERO ===== */
+.hero{
+  position:relative; border:1px solid var(--border2); border-radius:20px; overflow:hidden;
+  background:linear-gradient(135deg, rgba(94,224,255,.12), rgba(167,139,255,.08)), var(--panel);
+  box-shadow:var(--shadow); padding:16px 24px; margin-bottom:14px;
+  display:grid; grid-template-columns:auto 1fr auto; gap:24px; align-items:center;
+}
+.hero::after{content:"";position:absolute;inset:0;border-radius:20px;pointer-events:none;box-shadow:inset 0 0 70px rgba(94,224,255,.09)}
+.avatar-wrap{width:150px;filter:drop-shadow(0 8px 26px rgba(94,224,255,.22))}
+.avatar-wrap svg{width:100%;height:auto;display:block}
+.avatar-cap{margin-top:5px;font-size:.55rem;line-height:1.45;color:var(--text3);text-align:center;font-family:'Orbitron',sans-serif;letter-spacing:.3px}
+.hero-id h1{font-family:'Orbitron',sans-serif;font-weight:900;font-size:2rem;line-height:1;margin:6px 0 4px;text-shadow:0 0 24px rgba(94,224,255,.28)}
+.hero-id .sub{color:var(--text2);font-weight:600;font-size:.95rem}
+.hero-id .class{display:inline-block;margin-top:10px;padding:6px 13px;border:1px solid var(--border2);border-radius:999px;background:rgba(167,139,255,.12);color:var(--accent2);font-weight:700;font-size:.8rem;letter-spacing:1px;text-transform:uppercase}
+.hero-id .tags{margin-top:11px;display:flex;gap:8px;flex-wrap:wrap}
+.tag{font-size:.72rem;color:var(--text2);border:1px solid var(--border);border-radius:6px;padding:3px 9px;background:rgba(255,255,255,.02)}
+.tag b{color:var(--text)}
+.hero-right{display:flex;gap:22px;align-items:center}
+.hero-gauges{display:flex;flex-direction:column;gap:13px;min-width:230px}
+.gauge .glabel{display:flex;justify-content:space-between;gap:8px;font-size:.84rem;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+.gauge .gbar{height:12px;border-radius:8px;background:#0a0e1d;border:1px solid var(--border);overflow:hidden;position:relative}
+.gauge .gfill{height:100%;border-radius:8px;width:0;transition:width 1.6s cubic-bezier(.2,.8,.2,1);box-shadow:0 0 10px currentColor}
+/* level ring */
+.lvl-ring{position:relative;width:118px;height:118px;display:grid;place-items:center}
+.lvl-ring svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.lvl-ring .lvl-num{font-family:'Orbitron',sans-serif;font-weight:900;font-size:2.5rem;line-height:1;background:linear-gradient(160deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lvl-ring .lvl-cap{position:absolute;bottom:14px;font-size:.5rem;letter-spacing:.6px;color:var(--text3);font-family:'Orbitron',sans-serif;white-space:nowrap}
+
+/* ===== hero vitals strip (dense characteristics) ===== */
+.vitals{grid-column:1/-1;margin-top:4px;padding-top:12px;border-top:1px solid var(--border);
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:9px}
+.vital{border:1px solid var(--border);border-radius:11px;padding:9px 11px;background:linear-gradient(180deg,rgba(255,255,255,.02),transparent),var(--panel2);position:relative;overflow:hidden;transition:transform .15s ease,box-shadow .15s ease}
+.vital:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.4)}
+.vital .vtop{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;gap:6px}
+.vital .vname{font-weight:700;font-size:.9rem;display:flex;gap:5px;align-items:center;min-width:0;flex:1}
+.vital .vname .vtxt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.vital .vnum{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.18rem;color:var(--c);flex:0 0 auto;white-space:nowrap}
+.vital .vbar{height:7px;border-radius:5px;background:#0a0e1d;border:1px solid var(--border);overflow:hidden;position:relative}
+.vital .vfill{height:100%;width:0;border-radius:5px;transition:width 1.4s cubic-bezier(.2,.8,.2,1);box-shadow:0 0 8px currentColor}
+.vital .vtier{font-size:.7rem;color:var(--text3);margin-top:4px;font-family:'Orbitron',sans-serif;letter-spacing:.2px}
+@media(max-width:520px){.vitals{grid-template-columns:repeat(2,1fr)}}
+
+/* ===== section ===== */
+section{margin-bottom:22px}
+.sec-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.sec-head .num{font-family:'Orbitron',sans-serif;font-size:.7rem;color:var(--accent);border:1px solid var(--border2);border-radius:6px;padding:3px 7px}
+.sec-head h2{font-family:'Orbitron',sans-serif;font-weight:700;font-size:1.05rem;letter-spacing:1px;text-transform:uppercase}
+.sec-head .line{flex:1;height:1px;background:linear-gradient(90deg,var(--border2),transparent)}
+
+.grid{display:grid;gap:14px}
+.panel{background:linear-gradient(180deg,rgba(255,255,255,.018),transparent),var(--panel);border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:var(--shadow);position:relative}
+.panel h3{font-family:'Orbitron',sans-serif;font-size:.8rem;letter-spacing:1.5px;color:var(--text2);text-transform:uppercase;margin-bottom:14px}
+
+/* ===== DONUTS (circular fills) ===== */
+.donut-grid{grid-template-columns:repeat(auto-fill,minmax(168px,1fr))}
+.donut{display:flex;flex-direction:column;align-items:center;text-align:center;border:1px solid var(--border);border-radius:14px;padding:16px 12px 14px;background:var(--panel2);position:relative;overflow:hidden;transition:transform .15s ease,box-shadow .15s ease}
+.donut:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(0,0,0,.45)}
+.donut .ring{position:relative;width:118px;height:118px;display:grid;place-items:center}
+.donut .ring svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.donut .ring .center{display:flex;flex-direction:column;align-items:center;line-height:1}
+.donut .ring .center .ic{font-size:1.15rem;margin-bottom:2px;filter:drop-shadow(0 0 6px var(--c))}
+.donut .ring .center .pct{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.35rem;color:var(--c)}
+.donut .dname{font-weight:700;font-size:.92rem;margin-top:10px;overflow-wrap:anywhere;word-break:break-word;hyphens:auto;max-width:100%}
+.donut .dtier{font-size:.7rem;color:var(--text2);margin-top:2px}
+.donut .dgene{font-size:.62rem;color:var(--text3);margin-top:6px;font-family:'Orbitron',sans-serif;letter-spacing:.2px}
+.donut .dkind{position:absolute;top:9px;right:9px;font-size:.54rem;font-family:'Orbitron',sans-serif;letter-spacing:.8px;text-transform:uppercase;padding:2px 6px;border-radius:5px;border:1px solid var(--c);color:var(--c)}
+
+/* ===== composite: donuts | (radar + dopamine) | perks/debuffs ===== */
+.composite-grid{grid-template-columns:minmax(180px,200px) minmax(330px,1fr) minmax(320px,400px);align-items:stretch}
+@media(max-width:1040px){.composite-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:720px){.composite-grid{grid-template-columns:1fr}}
+.center-stack{display:flex;flex-direction:column;gap:14px}
+.center-stack .panel{flex:0 0 auto}
+.composite-grid .panel{display:flex;flex-direction:column}
+/* compact donuts inside composite */
+.donut-mini{grid-template-columns:repeat(2,1fr);gap:10px}
+.donut-mini .donut{padding:11px 8px 10px;border-radius:12px}
+.donut-mini .donut .ring{width:84px;height:84px}
+.donut-mini .donut .ring .center .ic{font-size:.9rem;margin-bottom:1px}
+.donut-mini .donut .ring .center .pct{font-size:1.2rem}
+.donut-mini .donut .dname{font-size:.82rem;margin-top:7px;line-height:1.15}
+.donut-mini .donut .dtier{font-size:.62rem;margin-top:1px}
+.donut-mini .donut .dgene,.donut-mini .donut .dkind{display:none}
+/* compact perks inside composite */
+.trait.mini{grid-template-columns:auto 1fr;padding:10px 12px;gap:10px}
+.trait.mini .tdesc{display:none}
+.trait.mini .rar{grid-column:2;justify-self:start;margin-top:4px}
+.trait.mini .ti{font-size:1.25rem}
+.radar-box{display:grid;place-items:center;flex:1}
+.radar-box svg{width:100%;max-width:480px;height:auto;overflow:visible}
+/* perks+debuffs: two columns (perks | debuffs), taller cards */
+.pd-stack .pd-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:420px){.pd-stack .pd-cols{grid-template-columns:1fr}}
+.pd-stack .trait-list{gap:9px}
+.pd-stack .trait.mini{min-height:60px;align-content:center;padding:11px 12px}
+.pd-stack .col-title{margin:0 0 9px}
+
+/* ===== dopamine system schematic ===== */
+.da-grid{grid-template-columns:1fr}
+.da-legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.da-map svg{width:100%;height:auto;overflow:visible}
+.da-node{display:grid;grid-template-columns:auto 1fr;gap:11px;align-items:start;border:1px solid var(--border);border-left-width:3px;border-radius:11px;padding:11px 13px;background:var(--panel2)}
+.da-node .di{font-size:1.35rem;line-height:1;filter:drop-shadow(0 0 6px currentColor)}
+.da-node .dn{font-weight:700;font-size:.9rem}
+.da-node .dd{font-size:.77rem;color:var(--text2);margin-top:2px}
+.da-node .dg{font-size:.67rem;color:var(--text3);margin-top:5px;font-family:'Orbitron',sans-serif;letter-spacing:.2px}
+.da-node.up{border-left-color:var(--good)} .da-node.up .di{color:var(--good)}
+.da-node.dn-bad{border-left-color:var(--bad)} .da-node.dn-bad .di{color:var(--bad)}
+.da-node.mix{border-left-color:var(--cand)} .da-node.mix .di{color:var(--cand)}
+
+/* ===== radar + stats ===== */
+.attr-grid{grid-template-columns:minmax(300px,430px) 1fr}
+@media(max-width:880px){.attr-grid{grid-template-columns:1fr}}
+.radar-wrap{display:grid;place-items:center}
+.radar-wrap svg{width:100%;max-width:400px;height:auto;overflow:visible}
+.stat-row{display:grid;grid-template-columns:148px 1fr auto;gap:12px;align-items:center;margin-bottom:13px}
+.stat-row .sname{font-weight:700;font-size:.86rem;display:flex;align-items:center;gap:7px}
+.stat-row .sname .ic{font-size:1rem}
+.bar{height:14px;border-radius:8px;background:#0a0e1d;border:1px solid var(--border);overflow:hidden;position:relative}
+.bar .fill{height:100%;width:0;border-radius:8px;transition:width 1.4s cubic-bezier(.2,.8,.2,1);position:relative;box-shadow:0 0 10px currentColor}
+.bar .fill::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3));opacity:.5}
+.stat-row .sval{font-family:'Orbitron',sans-serif;font-size:.72rem;color:var(--text2);min-width:96px;text-align:right}
+.stat-row .basis{grid-column:1/-1;font-size:.72rem;color:var(--text3);margin-top:-6px;padding-left:155px}
+@media(max-width:560px){.stat-row{grid-template-columns:110px 1fr}.stat-row .sval{grid-column:2;text-align:left;min-width:0}.stat-row .basis{padding-left:0}}
+
+/* ===== traits ===== */
+.traits-grid{grid-template-columns:1fr 1fr}
+@media(max-width:880px){.traits-grid{grid-template-columns:1fr}}
+.trait-list{display:flex;flex-direction:column;gap:10px}
+.trait{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start;border:1px solid var(--border);border-left-width:3px;border-radius:11px;padding:12px 14px;background:var(--panel2);transition:transform .15s ease,box-shadow .15s ease}
+.trait:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.4)}
+.trait .ti{font-size:1.5rem;line-height:1;filter:drop-shadow(0 0 6px currentColor)}
+.trait .tname{font-weight:700;font-size:.93rem}
+.trait .tdesc{font-size:.78rem;color:var(--text2);margin-top:2px}
+.trait .tbasis{font-size:.7rem;color:var(--text3);margin-top:5px;font-family:'Orbitron',sans-serif;letter-spacing:.3px}
+.rar{font-size:.6rem;font-family:'Orbitron',sans-serif;letter-spacing:1px;text-transform:uppercase;padding:3px 7px;border-radius:6px;white-space:nowrap;border:1px solid currentColor;align-self:start}
+.r-leg{color:var(--leg)} .r-epic{color:var(--epic)} .r-rare{color:var(--rare)} .r-unc{color:var(--unc)} .r-clin{color:var(--clin)}
+.buff{border-left-color:var(--good)} .buff .ti{color:var(--good)}
+.debuff{border-left-color:var(--bad)} .debuff .ti{color:var(--bad)}
+.col-title{display:flex;align-items:center;gap:8px;font-family:'Orbitron',sans-serif;font-size:.82rem;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}
+.col-title.good{color:var(--good)} .col-title.bad{color:var(--bad)}
+
+/* ===== resistance matrix ===== */
+.res-grid{grid-template-columns:repeat(auto-fill,minmax(225px,1fr))}
+.res{border:1px solid var(--border);border-radius:12px;padding:14px;background:var(--panel2);position:relative;overflow:hidden}
+.res::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c)}
+.res .verdict{font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.2px;text-transform:uppercase;color:var(--c);font-weight:700}
+.res .rname{font-weight:700;font-size:1.02rem;margin:4px 0 6px}
+.res .meter{display:flex;gap:3px;margin-bottom:7px}
+.res .pip{flex:1;height:6px;border-radius:3px;background:#0a0e1d;border:1px solid var(--border)}
+.res .pip.on{background:var(--c);border-color:var(--c);box-shadow:0 0 8px var(--c)}
+.res .rbasis{font-size:.74rem;color:var(--text2)}
+.res .rgene{font-size:.68rem;color:var(--text3);margin-top:5px;font-family:'Orbitron',sans-serif}
+
+/* ===== loadout ===== */
+.load-grid{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+.slot{border:1px solid var(--border);border-radius:12px;padding:14px;background:linear-gradient(160deg,var(--panel2),var(--panel));text-align:center;position:relative}
+.slot .stype{font-size:.62rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);font-family:'Orbitron',sans-serif}
+.slot .sicon{font-size:2rem;margin:8px 0;filter:drop-shadow(0 0 10px var(--c))}
+.slot .sitem{font-weight:700;font-size:.95rem;color:var(--c)}
+.slot .snote{font-size:.72rem;color:var(--text2);margin-top:5px}
+.slot.forbidden{border-style:dashed;opacity:.92}
+
+/* ===== quest log ===== */
+.quest{display:flex;gap:13px;align-items:flex-start;border:1px solid var(--border);border-radius:11px;padding:13px 15px;background:var(--panel2);margin-bottom:10px}
+.quest .qcheck{font-size:1.2rem;color:var(--good);filter:drop-shadow(0 0 6px var(--good))}
+.quest .qq{font-weight:700;font-size:.9rem;color:var(--text)}
+.quest .qa{font-size:.8rem;color:var(--text2);margin-top:3px}
+.quest .qa b{color:var(--accent)}
+
+/* ===== legend ===== */
+.legend{display:flex;flex-wrap:wrap;gap:10px}
+.lchip{display:flex;align-items:center;gap:7px;font-size:.74rem;color:var(--text2);border:1px solid var(--border);border-radius:8px;padding:6px 11px;background:var(--panel2)}
+.lchip .dot{width:11px;height:11px;border-radius:3px;box-shadow:0 0 8px currentColor}
+
+.load-quest{grid-template-columns:1.15fr 1fr}
+@media(max-width:880px){.load-quest{grid-template-columns:1fr}}
+@media(max-width:700px){
+  .hero{grid-template-columns:1fr;text-align:center}
+  .avatar-wrap{margin:0 auto}
+  .hero-gauges{min-width:0}
+  .hero-right{flex-direction:column;align-items:stretch}
+  .hero-id .tags{justify-content:center}
+}
+footer{margin-top:24px;padding-top:16px;border-top:1px solid var(--border);color:var(--text3);font-size:.76rem;text-align:center;line-height:1.7}
+footer b{color:var(--text2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===================== HERO ===================== -->
+  <header class="hero">
+    <div class="avatar-wrap">
+      <!-- ===== ГЕНОМ-АВАТАР: черты = SNP ===== -->
+      <svg viewBox="0 0 260 300" role="img" aria-label="Геном-аватар КК">
+        <defs>
+          <radialGradient id="bgGlow" cx="50%" cy="38%" r="62%">
+            <stop offset="0%" stop-color="#16203f"/>
+            <stop offset="100%" stop-color="#080b15"/>
+          </radialGradient>
+          <linearGradient id="hexEdge" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#5ee0ff"/>
+            <stop offset="100%" stop-color="#a78bff"/>
+          </linearGradient>
+          <!-- skin: светлая европейская — SLC24A5 rs1426654 AA + SLC45A2 rs16891982 GG -->
+          <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#f6ddc6"/>
+            <stop offset="55%" stop-color="#eecbb0"/>
+            <stop offset="100%" stop-color="#dcae8f"/>
+          </linearGradient>
+          <!-- hair: тёмно-русый/каштановый — MC1R wild-type (не рыжий) + IRF4 rs12203592 CC (темнее) -->
+          <linearGradient id="hair" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#5a4636"/>
+            <stop offset="100%" stop-color="#33261c"/>
+          </linearGradient>
+          <linearGradient id="jacket" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#1b2545"/>
+            <stop offset="100%" stop-color="#10162b"/>
+          </linearGradient>
+          <!-- iris: КАРИЕ — HERC2 rs12913832 GG + OCA2 rs1800407 CC -->
+          <radialGradient id="iris" cx="50%" cy="45%" r="55%">
+            <stop offset="0%" stop-color="#a9763f"/>
+            <stop offset="55%" stop-color="#6b4423"/>
+            <stop offset="100%" stop-color="#3a2410"/>
+          </radialGradient>
+          <linearGradient id="neon" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#5ee0ff"/>
+            <stop offset="100%" stop-color="#a78bff"/>
+          </linearGradient>
+          <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="2.4" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="strong" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="4" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <!-- hex frame -->
+        <polygon points="130,10 250,80 250,220 130,290 10,220 10,80" fill="url(#bgGlow)" stroke="url(#hexEdge)" stroke-width="2.5"/>
+        <polygon points="130,22 240,86 240,214 130,278 20,214 20,86" fill="none" stroke="#243056" stroke-width="1"/>
+        <!-- HUD ticks -->
+        <g stroke="#34457e" stroke-width="2" opacity=".7">
+          <line x1="130" y1="14" x2="130" y2="24"/>
+          <line x1="246" y1="82" x2="237" y2="88"/>
+          <line x1="246" y1="218" x2="237" y2="212"/>
+          <line x1="130" y1="286" x2="130" y2="276"/>
+          <line x1="14" y1="218" x2="23" y2="212"/>
+          <line x1="14" y1="82" x2="23" y2="88"/>
+        </g>
+
+        <!-- clip portrait to inner hex -->
+        <clipPath id="hexClip"><polygon points="130,22 240,86 240,214 130,278 20,214 20,86"/></clipPath>
+        <g clip-path="url(#hexClip)">
+          <!-- shoulders / tech-jacket -->
+          <path d="M58,300 C60,250 88,224 116,216 L144,216 C172,224 200,250 202,300 Z" fill="url(#jacket)" stroke="#34457e" stroke-width="1.5"/>
+          <path d="M116,222 C124,236 136,236 144,222" fill="none" stroke="url(#neon)" stroke-width="2.4" filter="url(#soft)"/>
+          <path d="M96,300 C100,262 110,246 116,240" fill="none" stroke="#34457e" stroke-width="1.2"/>
+          <path d="M164,300 C160,262 150,246 144,240" fill="none" stroke="#34457e" stroke-width="1.2"/>
+
+          <!-- neck -->
+          <path d="M116,190 L116,220 C116,228 144,228 144,220 L144,190 Z" fill="#d39e78"/>
+          <path d="M116,196 C124,206 136,206 144,196" fill="none" stroke="#b27e58" stroke-width="2" opacity=".6"/>
+
+          <!-- ears -->
+          <ellipse cx="84" cy="132" rx="7" ry="11" fill="url(#skin)" stroke="#b27e58" stroke-width="1"/>
+          <ellipse cx="176" cy="132" rx="7" ry="11" fill="url(#skin)" stroke="#b27e58" stroke-width="1"/>
+
+          <!-- head -->
+          <path d="M84,116 C84,78 104,62 130,62 C156,62 176,78 176,116 C176,140 171,162 158,178 C148,190 139,196 130,196 C121,196 112,190 102,178 C89,162 84,140 84,116 Z" fill="url(#skin)"/>
+          <!-- cheek/jaw soft shadow -->
+          <path d="M102,176 C112,190 121,196 130,196 C139,196 148,190 158,176 C150,184 140,188 130,188 C120,188 110,184 102,176 Z" fill="#a9764f" opacity=".22"/>
+          <!-- light stubble dots -->
+          <g fill="#6f5238" opacity=".4">
+            <circle cx="110" cy="180" r="1"/><circle cx="118" cy="184" r="1"/><circle cx="126" cy="186" r="1"/>
+            <circle cx="134" cy="186" r="1"/><circle cx="142" cy="184" r="1"/><circle cx="150" cy="180" r="1"/>
+            <circle cx="114" cy="174" r="1"/><circle cx="146" cy="174" r="1"/><circle cx="130" cy="190" r="1"/>
+          </g>
+          <!-- лёгкие веснушки — TYR rs1042602 AC (мягкая склонность) -->
+          <g fill="#c98a5a" opacity=".5">
+            <circle cx="108" cy="150" r=".9"/><circle cx="116" cy="146" r=".8"/><circle cx="113" cy="156" r=".8"/>
+            <circle cx="147" cy="150" r=".9"/><circle cx="152" cy="146" r=".8"/><circle cx="144" cy="156" r=".8"/>
+            <circle cx="127" cy="146" r=".7"/><circle cx="133" cy="146" r=".7"/>
+          </g>
+
+          <!-- hair (short, slight widow's peak) -->
+          <path d="M82,118 C79,80 102,58 130,58 C158,58 181,80 178,118 C174,104 165,92 158,90 C158,82 150,76 140,76 C136,70 124,70 120,76 C110,76 102,82 102,90 C95,92 86,104 82,118 Z" fill="url(#hair)"/>
+          <!-- hair rim light -->
+          <path d="M82,118 C79,80 102,58 130,58 C158,58 181,80 178,118" fill="none" stroke="url(#neon)" stroke-width="1.6" opacity=".5" filter="url(#soft)"/>
+
+          <!-- brows -->
+          <path d="M100,116 Q111,110 122,115" fill="none" stroke="#3b2c20" stroke-width="4" stroke-linecap="round"/>
+          <path d="M138,115 Q149,110 160,116" fill="none" stroke="#3b2c20" stroke-width="4" stroke-linecap="round"/>
+
+          <!-- eyes -->
+          <g>
+            <ellipse cx="112" cy="127" rx="11" ry="6.4" fill="#f6fbff"/>
+            <ellipse cx="148" cy="127" rx="11" ry="6.4" fill="#f6fbff"/>
+            <circle cx="113" cy="127" r="4.7" fill="url(#iris)" filter="url(#soft)"/>
+            <circle cx="147" cy="127" r="4.7" fill="url(#iris)" filter="url(#soft)"/>
+            <circle cx="113" cy="127" r="2" fill="#0a0e1d"/>
+            <circle cx="147" cy="127" r="2" fill="#0a0e1d"/>
+            <circle cx="111.4" cy="125.4" r="1.1" fill="#fff"/>
+            <circle cx="145.4" cy="125.4" r="1.1" fill="#fff"/>
+            <!-- upper lids -->
+            <path d="M101,124 Q112,119 123,124" fill="none" stroke="#5a4636" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M137,124 Q148,119 159,124" fill="none" stroke="#5a4636" stroke-width="1.6" stroke-linecap="round"/>
+          </g>
+
+          <!-- nose -->
+          <path d="M130,128 L124,150 Q130,156 136,150" fill="none" stroke="#b27e58" stroke-width="2" stroke-linecap="round"/>
+          <!-- mouth (calm-alert) -->
+          <path d="M116,166 Q130,171 144,166" fill="none" stroke="#9c5d52" stroke-width="2.6" stroke-linecap="round"/>
+
+          <!-- dopamine particles (DRD2 / DRD4 novelty) -->
+          <g fill="#5ee0ff" filter="url(#strong)">
+            <circle cx="62" cy="96" r="2.6"/><circle cx="198" cy="104" r="2.2"/>
+            <circle cx="72" cy="186" r="2"/><circle cx="190" cy="182" r="2.4"/>
+          </g>
+          <g fill="#a78bff" filter="url(#strong)">
+            <circle cx="56" cy="150" r="2.2"/><circle cx="204" cy="150" r="2"/>
+            <circle cx="96" cy="214" r="2.2"/><circle cx="164" cy="214" r="2"/>
+          </g>
+        </g>
+
+        <!-- neural dome over skull (BDNF Val/Val neuroplasticity) -->
+        <g filter="url(#strong)" opacity=".95">
+          <g stroke="url(#neon)" stroke-width="1.5" fill="none" opacity=".9">
+            <path d="M104,74 L120,66 L140,70 L150,80"/>
+            <path d="M112,86 L130,74 L146,86"/>
+            <path d="M120,66 L124,84 L140,84 L140,70"/>
+            <path d="M124,84 L116,96 M140,84 L150,94"/>
+          </g>
+          <g fill="#bff4ff">
+            <circle cx="104" cy="74" r="2.4"/><circle cx="120" cy="66" r="2.6"/><circle cx="140" cy="70" r="2.4"/>
+            <circle cx="150" cy="80" r="2.2"/><circle cx="124" cy="84" r="2.4"/><circle cx="140" cy="84" r="2.4"/>
+            <circle cx="116" cy="96" r="2"/><circle cx="150" cy="94" r="2"/>
+          </g>
+        </g>
+
+        <!-- temple ember (MAO-A fast monoamine turnover) -->
+        <g filter="url(#strong)" transform="translate(166,98)">
+          <path d="M0,0 C5,-6 2,-11 4,-15 C9,-10 10,-3 6,3 C3,7 -3,6 0,0 Z" fill="#ff9d3c"/>
+          <path d="M2,-2 C5,-6 4,-9 5,-11 C7,-7 7,-3 4,1 C2,3 0,1 2,-2 Z" fill="#ffd24a"/>
+        </g>
+
+        <!-- crescent moon badge (MTNR1B circadian) -->
+        <g transform="translate(40,236)">
+          <circle r="13" fill="#0c1224" stroke="#34457e" stroke-width="1"/>
+          <path d="M3,-7 A7,7 0 1 0 3,7 A5.5,5.5 0 1 1 3,-7 Z" fill="#cdd7ff"/>
+        </g>
+        <!-- DNA spark badge bottom-right -->
+        <g transform="translate(220,236)" filter="url(#soft)">
+          <circle r="13" fill="#0c1224" stroke="#34457e" stroke-width="1"/>
+          <path d="M-5,-7 C5,-3 -5,3 5,7 M5,-7 C-5,-3 5,3 -5,7" fill="none" stroke="url(#neon)" stroke-width="1.6"/>
+        </g>
+      </svg>
+      <div class="avatar-cap">цвета = пигментные SNP · неон = нейрогены (BDNF / DRD2 / MAO‑A / MTNR1B)</div>
+    </div>
+
+    <div class="hero-id">
+      <div class="eyebrow">Genome Character Sheet · v2</div>
+      <h1>КК</h1>
+      <div class="sub">♂ · Homo sapiens · европейская популяция · 668 061 SNP проанализировано</div>
+      <span class="class">Класс: Тревожно-дофаминовый билд</span>
+      <div class="tags">
+        <span class="tag">УР. <b>42</b> / 120</span>
+        <span class="tag">Рост <b>183</b></span>
+        <span class="tag">Вес <b>79</b></span>
+        <span class="tag">Сборка <b>genes.txt</b></span>
+        <span class="tag">Патч <b>2026-06-23</b></span>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <div class="hero-gauges">
+        <div class="gauge" style="color:#5ee0ff">
+          <div class="glabel"><span>🧠 Нейропластичность</span><span>85</span></div>
+          <div class="gbar"><div class="gfill" data-w="85" style="background:linear-gradient(90deg,#2bd4a0,#5ee0ff)"></div></div>
+        </div>
+        <div class="gauge" style="color:#ff6b8a">
+          <div class="glabel"><span>😰 Тревожная нагрузка</span><span>высокая</span></div>
+          <div class="gbar"><div class="gfill" data-w="78" style="background:linear-gradient(90deg,#ff9d3c,#ff6b8a)"></div></div>
+        </div>
+        <div class="gauge" style="color:#ff6b8a">
+          <div class="glabel"><span>🔥 Распад моноаминов</span><span>высокий</span></div>
+          <div class="gbar"><div class="gfill" data-w="75" style="background:linear-gradient(90deg,#ffd24a,#ff6b8a)"></div></div>
+        </div>
+      </div>
+      <div class="lvl-ring">
+        <svg viewBox="0 0 118 118">
+          <circle cx="59" cy="59" r="52" fill="none" stroke="#0a0e1d" stroke-width="8"/>
+          <circle cx="59" cy="59" r="52" fill="none" stroke="url(#lvlg)" stroke-width="8" stroke-linecap="round"
+                  class="lvl-arc" stroke-dasharray="326.7" stroke-dashoffset="326.7"/>
+          <defs><linearGradient id="lvlg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#5ee0ff"/><stop offset="100%" stop-color="#a78bff"/>
+          </linearGradient></defs>
+        </svg>
+        <div class="lvl-num">42</div>
+        <div class="lvl-cap">из 120 лет</div>
+      </div>
+    </div>
+
+    <!-- dense characteristics strip -->
+    <div class="vitals" id="hero-vitals"></div>
+  </header>
+
+  <!-- ===================== COMPOSITE: системы · радар · перки ===================== -->
+  <section>
+    <div class="sec-head"><span class="num">01</span><h2>Геном-сводка · системы · радар · перки</h2><span class="line"></span></div>
+    <div class="grid composite-grid">
+      <div class="panel">
+        <h3>Системы · круговые шкалы</h3>
+        <div class="grid donut-mini" id="donuts"></div>
+      </div>
+      <div class="center-stack">
+        <div class="panel">
+          <h3>Характеристики · радар</h3>
+          <div class="radar-box"><div id="radar"></div></div>
+        </div>
+        <!-- dopamine block diagram relocated here (under the radar) -->
+        <div id="da-slot"></div>
+      </div>
+      <div class="panel pd-stack">
+        <h3>Главное · перки и дебаффы</h3>
+        <div class="pd-cols">
+          <div>
+            <div class="col-title good">▲ Перки</div>
+            <div class="trait-list" id="buffs-top"></div>
+          </div>
+          <div>
+            <div class="col-title bad">▼ Дебаффы</div>
+            <div class="trait-list" id="debuffs-top"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== DOPAMINE SYSTEM (legend; block-diagram relocated under radar) ===================== -->
+  <section>
+    <div class="sec-head"><span class="num">02</span><h2>Дофаминовая система · расшифровка</h2><span class="line"></span></div>
+    <div class="grid da-grid">
+      <div class="panel da-map" id="da-map-panel" style="display:none">
+        <h3>Блок-схема · сигнальный тракт дофамина (с моими вариантами)</h3>
+        <svg viewBox="0 0 940 472" role="img" aria-label="Блок-схема дофаминовой системы КК">
+          <defs>
+            <radialGradient id="nodeFill" cx="50%" cy="30%" r="75%">
+              <stop offset="0%" stop-color="#172143"/><stop offset="100%" stop-color="#0c1124"/>
+            </radialGradient>
+            <marker id="aCy" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5ee0ff"/></marker>
+            <marker id="aRd" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff6b8a"/></marker>
+            <marker id="aOr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff9d3c"/></marker>
+            <marker id="aYl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ffd24a"/></marker>
+            <filter id="bGlow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+
+          <!-- backplane grid -->
+          <g stroke="#141d3a" stroke-width="1">
+            <line x1="0" y1="236" x2="940" y2="236" stroke="#243056" stroke-dasharray="6 7"/>
+          </g>
+
+          <!-- ============ BAND A: маршрутизация путей ============ -->
+          <text x="14" y="24" fill="#5ee0ff" font-family="Orbitron,sans-serif" font-size="15.4" letter-spacing="2">A · МАРШРУТИЗАЦИЯ ПУТЕЙ</text>
+
+          <!-- SOURCE node: VTA/SNc -->
+          <rect x="22" y="78" width="158" height="86" rx="6" fill="url(#nodeFill)" stroke="#a78bff" stroke-width="2"/>
+          <text x="101" y="108" text-anchor="middle" fill="#eaeefb" font-family="Orbitron,sans-serif" font-size="17.9" font-weight="700">VTA / SNc</text>
+          <text x="101" y="128" text-anchor="middle" fill="#9aa6cc" font-size="14.1">источник DA</text>
+          <text x="101" y="146" text-anchor="middle" fill="#7d88b4" font-size="11.2">TH→L‑DOPA→DA</text>
+
+          <!-- bus -->
+          <path d="M180,121 H214" fill="none" stroke="#5ee0ff" stroke-width="2"/>
+          <rect x="214" y="68" width="3" height="126" fill="#34457e"/>
+          <circle cx="215.5" cy="121" r="3.5" fill="#5ee0ff"/>
+
+          <!-- target nodes -->
+          <rect x="744" y="56" width="182" height="44" rx="6" fill="url(#nodeFill)" stroke="#5ee0ff" stroke-width="2"/>
+          <text x="835" y="74" text-anchor="middle" fill="#eaeefb" font-family="Orbitron,sans-serif" font-size="16" font-weight="700">ПФК</text>
+          <text x="835" y="90" text-anchor="middle" fill="#9aa6cc" font-size="11.2">фокус · план · новизна</text>
+
+          <rect x="744" y="120" width="182" height="44" rx="6" fill="url(#nodeFill)" stroke="#ff6b8a" stroke-width="2.4"/>
+          <text x="835" y="138" text-anchor="middle" fill="#eaeefb" font-family="Orbitron,sans-serif" font-size="16" font-weight="700">NAcc · награда</text>
+          <text x="835" y="154" text-anchor="middle" fill="#ff8aa3" font-size="11.2">выход ослаблен · D2 ↓</text>
+
+          <rect x="744" y="184" width="182" height="44" rx="6" fill="url(#nodeFill)" stroke="#4aa3ff" stroke-width="2"/>
+          <text x="835" y="202" text-anchor="middle" fill="#eaeefb" font-family="Orbitron,sans-serif" font-size="16" font-weight="700">Стриатум</text>
+          <text x="835" y="218" text-anchor="middle" fill="#9aa6cc" font-size="11.2">моторика · привычки</text>
+
+          <!-- branches (orthogonal) -->
+          <path d="M217,78 V78 M217,78 H744" fill="none"/>
+          <path d="M217,121 V78 H744" fill="none" stroke="#5ee0ff" stroke-width="2.4" marker-end="url(#aCy)"/>
+          <path d="M217,142 H744" fill="none" stroke="#ff6b8a" stroke-width="2.4" stroke-dasharray="2 7" marker-end="url(#aRd)"/>
+          <path d="M217,121 V206 H744" fill="none" stroke="#4aa3ff" stroke-width="2.2" marker-end="url(#aCy)"/>
+
+          <!-- branch labels + gain badges -->
+          <text x="360" y="70" fill="#8ea0cc" font-family="Orbitron,sans-serif" font-size="11.8">мезокортикальный</text>
+          <rect x="690" y="62" width="44" height="18" rx="4" fill="#0c1124" stroke="#5ee08a"/><text x="712" y="75" text-anchor="middle" fill="#5ee08a" font-size="11.2" font-family="Orbitron,sans-serif">≈ норм</text>
+
+          <text x="360" y="134" fill="#ff8aa3" font-family="Orbitron,sans-serif" font-size="11.8">мезолимбический · тусклый</text>
+          <rect x="690" y="126" width="44" height="18" rx="4" fill="#0c1124" stroke="#ff6b8a"/><text x="712" y="139" text-anchor="middle" fill="#ff6b8a" font-size="11.2" font-family="Orbitron,sans-serif">▼ D2</text>
+
+          <text x="360" y="198" fill="#7fc8ff" font-family="Orbitron,sans-serif" font-size="11.8">нигростриарный</text>
+          <rect x="690" y="190" width="44" height="18" rx="4" fill="#0c1124" stroke="#5ee08a"/><text x="712" y="203" text-anchor="middle" fill="#5ee08a" font-size="11.2" font-family="Orbitron,sans-serif">≈ норм</text>
+
+          <!-- COMT tap on mesocortical -->
+          <rect x="470" y="34" width="120" height="34" rx="5" fill="#0c1124" stroke="#ffd24a" stroke-width="1.6"/>
+          <text x="530" y="49" text-anchor="middle" fill="#ffd24a" font-family="Orbitron,sans-serif" font-size="11.8" font-weight="700">COMT Val/Met</text>
+          <text x="530" y="62" text-anchor="middle" fill="#cdb37a" font-size="10.6">клиренс в ПФК · средний</text>
+          <path d="M530,68 V78" stroke="#ffd24a" stroke-width="1.6" stroke-dasharray="3 3" marker-end="url(#aYl)"/>
+
+          <!-- ============ BAND B: механизм синапса ============ -->
+          <text x="14" y="262" fill="#ff9d3c" font-family="Orbitron,sans-serif" font-size="15.4" letter-spacing="2">B · МЕХАНИЗМ СИНАПСА — почему награда тусклая</text>
+
+          <!-- chain: presyn -> cleft -> postsyn -> output -->
+          <rect x="22" y="300" width="150" height="78" rx="6" fill="url(#nodeFill)" stroke="#5ee0ff" stroke-width="2"/>
+          <text x="97" y="328" text-anchor="middle" fill="#eaeefb" font-family="Orbitron,sans-serif" font-size="16" font-weight="700">Пресинапс</text>
+          <text x="97" y="345" text-anchor="middle" fill="#9aa6cc" font-size="11.2">выброс DA</text>
+          <circle cx="74" cy="362" r="3.2" fill="#5ee0ff"/><circle cx="90" cy="365" r="3.2" fill="#5ee0ff"/><circle cx="106" cy="360" r="3.2" fill="#5ee0ff"/>
+
+          <path d="M172,339 H214" fill="none" stroke="#5ee0ff" stroke-width="2.4" marker-end="url(#aCy)"/>
+          <text x="178" y="330" fill="#7d88b4" font-size="10.6">DA</text>
+
+          <rect x="216" y="300" width="150" height="78" rx="6" fill="#0c1124" stroke="#34457e" stroke-width="1.6" stroke-dasharray="5 4"/>
+          <text x="291" y="326" text-anchor="middle" fill="#cdd7ff" font-family="Orbitron,sans-serif" font-size="15.4" font-weight="700">Синаптическая</text>
+          <text x="291" y="342" text-anchor="middle" fill="#cdd7ff" font-family="Orbitron,sans-serif" font-size="15.4" font-weight="700">щель</text>
+          <circle cx="262" cy="360" r="3" fill="#5ee0ff" filter="url(#bGlow)"/><circle cx="300" cy="362" r="3" fill="#5ee0ff" filter="url(#bGlow)"/>
+
+          <path d="M366,339 H410" fill="none" stroke="#ff6b8a" stroke-width="2.4" marker-end="url(#aRd)"/>
+
+          <rect x="412" y="300" width="160" height="78" rx="6" fill="url(#nodeFill)" stroke="#ff6b8a" stroke-width="2.4"/>
+          <text x="492" y="326" text-anchor="middle" fill="#eaeefb" font-family="Orbitron,sans-serif" font-size="16" font-weight="700">Постсинапс</text>
+          <text x="492" y="343" text-anchor="middle" fill="#ff8aa3" font-size="11.2">D2 рецепторы ↓ (мало)</text>
+          <rect x="430" y="356" width="6" height="11" rx="2" fill="#ff6b8a"/><rect x="452" y="356" width="6" height="11" rx="2" fill="#ff6b8a"/>
+
+          <path d="M572,339 H620" fill="none" stroke="#ff6b8a" stroke-width="2.4" marker-end="url(#aRd)"/>
+
+          <rect x="622" y="304" width="180" height="70" rx="6" fill="#0c1124" stroke="#ff6b8a" stroke-width="1.8"/>
+          <text x="712" y="332" text-anchor="middle" fill="#ff8aa3" font-family="Orbitron,sans-serif" font-size="15.4" font-weight="700">Сигнал награды</text>
+          <text x="712" y="349" text-anchor="middle" fill="#9aa6cc" font-size="11.2">ослаблен → тяга к новизне</text>
+          <text x="712" y="364" text-anchor="middle" fill="#9aa6cc" font-size="11.2">риск зависимости</text>
+
+          <!-- MAO-A attenuator: subtracts DA from cleft (fast) -->
+          <rect x="236" y="418" width="160" height="44" rx="6" fill="#0c1124" stroke="#ff9d3c" stroke-width="2"/>
+          <text x="316" y="436" text-anchor="middle" fill="#ff9d3c" font-family="Orbitron,sans-serif" font-size="14.7" font-weight="700">MAO‑A ↑ распад</text>
+          <text x="316" y="451" text-anchor="middle" fill="#cdb37a" font-size="10.6">убирает DA из щели — быстро</text>
+          <path d="M300,418 V392" fill="none" stroke="#ff9d3c" stroke-width="2" stroke-dasharray="3 3" marker-end="url(#aOr)"/>
+          <circle cx="300" cy="392" r="9" fill="#0c1124" stroke="#ff9d3c" stroke-width="1.6"/><text x="300" y="396" text-anchor="middle" fill="#ff9d3c" font-size="16.6" font-weight="700">−</text>
+
+          <!-- DBH converter on presynapse: DA->NE weaker => more DA stays -->
+          <rect x="22" y="418" width="150" height="44" rx="6" fill="#0c1124" stroke="#ffd24a" stroke-width="1.8"/>
+          <text x="97" y="436" text-anchor="middle" fill="#ffd24a" font-family="Orbitron,sans-serif" font-size="14.7" font-weight="700">DBH ↓ · DA→NE</text>
+          <text x="97" y="451" text-anchor="middle" fill="#cdb37a" font-size="10.6">конверсия слабее → DA копится</text>
+          <path d="M97,418 V380" fill="none" stroke="#ffd24a" stroke-width="1.8" stroke-dasharray="3 3" marker-end="url(#aYl)"/>
+
+          <!-- compensator: sport -->
+          <rect x="622" y="418" width="180" height="44" rx="6" fill="#0c1124" stroke="#37e2a0" stroke-width="2"/>
+          <text x="712" y="436" text-anchor="middle" fill="#37e2a0" font-family="Orbitron,sans-serif" font-size="14.7" font-weight="700">🏃 Спорт ↑ D2</text>
+          <text x="712" y="451" text-anchor="middle" fill="#8fd9bd" font-size="10.6">аэробика чинит выход награды</text>
+          <path d="M712,418 V378" fill="none" stroke="#37e2a0" stroke-width="2" stroke-dasharray="3 3" marker-end="url(#aCy)"/>
+          <circle cx="712" cy="380" r="9" fill="#0c1124" stroke="#37e2a0" stroke-width="1.6"/><text x="712" y="385" text-anchor="middle" fill="#37e2a0" font-size="16.6" font-weight="700">+</text>
+        </svg>
+      </div>
+      <div class="panel">
+        <h3>Что это значит · по моим вариантам (схема — выше, под радаром)</h3>
+        <div class="da-legend" id="da-legend"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== ATTRIBUTES (detailed bars) ===================== -->
+  <section>
+    <div class="sec-head"><span class="num">03</span><h2>Профиль атрибутов · детально</h2><span class="line"></span></div>
+    <div class="panel"><h3>Качественные уровни · с обоснованием по SNP</h3><div id="stats"></div></div>
+  </section>
+
+  <!-- ===================== TRAITS ===================== -->
+  <section>
+    <div class="sec-head"><span class="num">04</span><h2>Перки и дебаффы · врождённые черты</h2><span class="line"></span></div>
+    <div class="grid traits-grid">
+      <div class="panel">
+        <div class="col-title good">▲ Перки (благоприятные варианты)</div>
+        <div class="trait-list" id="buffs"></div>
+      </div>
+      <div class="panel">
+        <div class="col-title bad">▼ Дебаффы (факторы уязвимости)</div>
+        <div class="trait-list" id="debuffs"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== RESISTANCES ===================== -->
+  <section>
+    <div class="sec-head"><span class="num">05</span><h2>Образ жизни и среда · как это на меня влияет</h2><span class="line"></span></div>
+    <div class="panel">
+      <h3>Матрица влияния · что заходит, а с чем осторожнее</h3>
+      <div class="grid res-grid" id="drugs"></div>
+    </div>
+  </section>
+
+  <!-- ===================== LOADOUT + QUESTS ===================== -->
+  <section>
+    <div class="sec-head"><span class="num">06</span><h2>Образ жизни · что прокачивать и фан-факты</h2><span class="line"></span></div>
+    <div class="grid load-quest">
+      <div class="panel">
+        <h3>Лоадаут образа жизни · что мне заходит</h3>
+        <div class="grid load-grid" id="loadout"></div>
+      </div>
+      <div class="panel">
+        <h3>Что объясняет генетика · фан-факты</h3>
+        <div id="quests"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== LEGEND ===================== -->
+  <section>
+    <div class="sec-head"><span class="num">07</span><h2>Редкость = уровень доказательности</h2><span class="line"></span></div>
+    <div class="panel">
+      <div class="legend">
+        <div class="lchip"><span class="dot" style="color:var(--leg);background:var(--leg)"></span><b style="color:var(--leg)">Легендарный</b> — High (CPIC / крупные GWAS)</div>
+        <div class="lchip"><span class="dot" style="color:var(--epic);background:var(--epic)"></span><b style="color:var(--epic)">Эпический</b> — Medium-High</div>
+        <div class="lchip"><span class="dot" style="color:var(--rare);background:var(--rare)"></span><b style="color:var(--rare)">Редкий</b> — Medium</div>
+        <div class="lchip"><span class="dot" style="color:var(--unc);background:var(--unc)"></span><b style="color:var(--unc)">Необычный</b> — Low-Medium</div>
+        <div class="lchip"><span class="dot" style="color:var(--clin);background:var(--clin)"></span><b style="color:var(--clin)">Клинический</b> — подтверждено на практике</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <b>КК · Генетический билд персонажа v2</b> — игровая интерпретация персонального генетического анализа (70+ SNP, 2026).<br>
+    Аватар собран по геному. Натуральные цвета — по пигментным SNP: глаза карие (HERC2 rs12913832 GG, OCA2 rs1800407 CC), кожа светлая европейская (SLC24A5 rs1426654 AA, SLC45A2 rs16891982 GG), волосы тёмные не рыжие (MC1R wild-type, IRF4 rs12203592 CC), лёгкие веснушки (TYR rs1042602 AC). Неоновые наложения = нейрогены: нейросеть на черепе = BDNF Val/Val · частицы = DRD2/DRD4 (дофамин, novelty) · искра у виска = MAO‑A · ☾ = MTNR1B (циркадность).<br>
+    Все варианты взяты как в файле 23andMe-формата; strand и LD учтены в исходном анализе (rs6277, DRD2-гаплотип, MTNR1B, GIPR — не суммировать как независимые сигналы).<br>
+    Это не медицинская рекомендация. Сгенерировано для наглядности · 2026-06-23.
+  </footer>
+</div>
+
+<script>
+/* =========================================================
+   ДАННЫЕ — всё привязано к kk/genetic/GENETICS.md
+   value 0..100 = качественная иллюстрация направления генотипа
+   ========================================================= */
+const DONUTS = [
+  {ic:'🧠', name:'Нейропластичность', val:85, tier:'Высокая', kind:'буст',       col:'#37e2a0', gene:'BDNF rs6265 Val/Val'},
+  {ic:'⚗️', name:'Метаболизм ЛС',     val:82, tier:'Надёжный', kind:'буст',       col:'#37e2a0', gene:'CYP2D6/2C19/3A4 норма'},
+  {ic:'🍬', name:'Анти-диабет щит',    val:88, tier:'Защита',  kind:'буст',       col:'#5ee08a', gene:'TCF7L2 CC · CTRB1 TT'},
+  {ic:'🛡️', name:'Стресс-ось',        val:66, tier:'Скорее норма', kind:'опора',  col:'#5ee0ff', gene:'FKBP5 норма · CRHR1'},
+  {ic:'⚡', name:'Награда (D2)',        val:32, tier:'Сниженная', kind:'уязвимость', col:'#ff6b8a', gene:'DRD2 rs1800497 AG · rs6277'},
+  {ic:'🌙', name:'Циркадность',        val:34, tier:'Сбита',    kind:'уязвимость', col:'#ff9d3c', gene:'MTNR1B rs10830963 CG'},
+  {ic:'😰', name:'Тревожная нагрузка', val:78, tier:'Высокая',  kind:'нагрузка',   col:'#ff6b8a', gene:'NPSR1 · HTR2A · GABA'},
+  {ic:'🔥', name:'Распад моноаминов',  val:75, tier:'Быстрый',  kind:'нагрузка',   col:'#ffd24a', gene:'MAO-A rs6323 T · DBH↓'},
+];
+
+const STATS = [
+  {key:'Фокус',       ic:'🎯', val:38, tier:'Сниженный',  col:'#ff9d3c', basis:'DRD2 A1, SNAP25 TT, HTR1B CC, DRD4 TC, COMT Val/Met — полигенный профиль внимания/импульсивности, не диагноз'},
+  {key:'Награда',     ic:'⚡', val:32, tier:'Сниженный',  col:'#ff6b8a', basis:'DRD2 rs1800497 AG + rs6277 CC → ↓D2-доступность'},
+  {key:'Спокойствие', ic:'🌊', val:30, tier:'Сниженный',  col:'#ff6b8a', basis:'NPSR1 TT, HTR2A CC, TPH1 TG/TG, ГАМК-гетерозиготы'},
+  {key:'Пластичность',ic:'🧠', val:85, tier:'Высокий',    col:'#37e2a0', basis:'BDNF rs6265 CC (Val/Val) — норм. секреция BDNF'},
+  {key:'Стресс-ось',  ic:'🛡️', val:66, tier:'Скорее норма',col:'#5ee0ff', basis:'FKBP5 интактен, CRHR1 протектив; NR3C1/NR3C2 — минор'},
+  {key:'Циркадность', ic:'🌙', val:34, tier:'Сбит',        col:'#ff9d3c', basis:'MTNR1B rs10830963 CG — нарушение мелатонин-сигнала'},
+  {key:'Моноамины',   ic:'🔥', val:34, tier:'Быстрый расход',col:'#ff6b8a',basis:'MAO-A rs6323 T (высокая активность), DBH↓, DIO2↓T3'},
+  {key:'Метаболизм',  ic:'⚗️', val:82, tier:'Надёжный',    col:'#37e2a0', basis:'CYP2D6 *1/*1, CYP2C19 норм, CYP3A4 норм'},
+];
+
+const BUFFS = [
+  {ic:'🧠', name:'Нейропластик', rar:['Эпический','r-epic'], desc:'Хороший потенциал нейропластичности → новые навыки, привычки и обучение закрепляются эффективно.', basis:'BDNF rs6265 CC (Val/Val)'},
+  {ic:'⚗️', name:'Чистый метаболизатор', rar:['Легендарный','r-leg'], desc:'Большинство препаратов расщепляются предсказуемо, с обычной скоростью.', basis:'CYP2D6 NM, CYP2C19 NM (*2/*17 компенсируют)'},
+  {ic:'🍬', name:'Анти-диабет щит', rar:['Легендарный','r-leg'], desc:'Защитный профиль по диабету 2 типа → благоприятный метаболический ответ (в т.ч. на популярные ГПП-1).', basis:'TCF7L2 rs7903146 CC, CTRB1 rs7202877 TT'},
+  {ic:'🛡️', name:'Стресс-ось держит', rar:['Необычный','r-unc'], desc:'HPA-ось генетически в целом интактна (есть и минорные факторы: NR3C1/NR3C2, CRHR2).', basis:'FKBP5 ×4 норма; CRHR1 — возможно протективный гаплотип'},
+  {ic:'🌿', name:'Эндоканнабиноид-норма', rar:['Необычный','r-unc'], desc:'Система в основном в норме.', basis:'FAAH rs324420 CC'},
+  {ic:'💊', name:'Опиоид-норма', rar:['Необычный','r-unc'], desc:'Ожидаемо нормальный ответ на опиоидное обезболивание при необходимости.', basis:'OPRM1 rs1799971 AA'},
+  {ic:'🩹', name:'Спокойное воспаление', rar:['Необычный','r-unc'], desc:'Нет выраженной генетической предрасположенности к хроническому воспалению.', basis:'IL6 rs1800795 GC, TNF rs1800629 GG'},
+];
+
+const DEBUFFS = [
+  {ic:'📉', name:'Тусклая награда', rar:['Эпический','r-epic'], desc:'Умеренно сниженная D2-доступность в стриатуме → ослабленное переживание удовольствия, тяга к новизне, риск зависимости.', basis:'DRD2 rs1800497 AG (Taq1A) + rs6277 CC'},
+  {ic:'🔥', name:'Ускоренный распад моноаминов', rar:['Редкий','r-rare'], desc:'Высокая активность MAO-A → 5-HT, DA, NE деградируют быстрее. У мужчин полный эффект (1 копия X).', basis:'MAO-A rs6323 T (гемизигота, X)'},
+  {ic:'😰', name:'Врождённая тревога', rar:['Редкий','r-rare'], desc:'Несколько независимых тревожных сигналов: панический-ассоц. NPSR1, серотониновая HTR2A, синтез 5-HT, CRHR2.', basis:'NPSR1 rs324981 TT, HTR2A rs6311 CC, TPH1 TG/TG, CRHR2 rs2270007 CG'},
+  {ic:'🌙', name:'Сбитые часы', rar:['Эпический','r-epic'], desc:'Нарушение мелатонинового сигнала → ночные симптомы. Хорошо воспроизведённая GWAS-ассоциация.', basis:'MTNR1B rs10830963 CG (+ rs1387153, в LD)'},
+  {ic:'🧊', name:'Мозговой T3-дефицит', rar:['Эпический','r-epic'], desc:'Сниженная конверсия T4→T3 в мозге при норм. ТТГ/Т4 → возможна нехватка энергии и «туман». Проверить свободный Т3.', basis:'DIO2 rs225014 Thr92Ala TC'},
+  {ic:'⚡', name:'Возбудимый ГАМК-баланс', rar:['Клинический','r-clin'], desc:'Множественные гетерозиготы ГАМК-системы → сдвиг баланса в сторону возбуждения/тревоги.', basis:'GAD1 TC, GABRA2 TC, GABRG2 TC, SLC1A1 TT'},
+  {ic:'🩸', name:'Сниженный синтез НА', rar:['Редкий','r-rare'], desc:'Умеренно сниженная конверсия DA→NE → сдвиг баланса в сторону дофамина.', basis:'DBH rs1611115 TC'},
+  {ic:'☕', name:'Медленный кофеин', rar:['Редкий','r-rare'], desc:'Средний метаболизатор → кофеин выводится медленнее и накапливается. ≤2 чашки/день, не после 14:00.', basis:'CYP1A2 rs762551 AC'},
+  {ic:'☀️', name:'VDR-вариант', rar:['Необычный','r-unc'], desc:'Возможна сниженная эффективность рецептора витамина D. Проверить 25(OH)D.', basis:'VDR BsmI rs1544410 TT + ApaI rs7975232 AA'},
+];
+
+const DRUGS = [
+  {name:'🏃 Спорт / аэробика', verdict:'ОЧЕНЬ ЗАХОДИТ', cls:'good', power:5, basis:'Регулярные аэробные нагрузки повышают доступность D2-рецепторов — для этого генотипа особенно ценно.', gene:'DRD2 + BDNF Val/Val · Robertson 2016'},
+  {name:'🧘 Медитация / обучение', verdict:'ЗАХОДИТ', cls:'good', power:4, basis:'Хорошая нейропластичность → новые навыки, привычки и практики закрепляются эффективно.', gene:'BDNF rs6265 CC (Val/Val)'},
+  {name:'🆕 Новизна / приключения', verdict:'ДРАЙВ · novelty seeking', cls:'good', power:4, basis:'Тянет к новому, рутина быстро надоедает: при сниженных D2 новизна даёт больше дофамина.', gene:'DRD4 rs1800955 TC, DRD2 AG'},
+  {name:'🍔 Еда, сахар и «Оземпик»', verdict:'БЛАГОПРИЯТНО', cls:'good', power:4, basis:'Защитный вариант по диабету 2 типа: метаболизм глюкозы скорее в плюс, благоприятный ожидаемый ответ на популярные ГПП-1.', gene:'TCF7L2 rs7903146 CC, GLP1R wild'},
+  {name:'🧠 Стресс', verdict:'СКОРЕЕ ДЕРЖУ', cls:'cand', power:3, basis:'Стресс-ось генетически скорее устойчива; COMT Val/Met — баланс между «воином» и «тревожником».', gene:'FKBP5 норма, COMT rs4680 AG'},
+  {name:'🤝 Социальность / доверие', verdict:'ПРОМЕЖУТОЧНО', cls:'cand', power:3, basis:'Промежуточный вариант «гена окситоцина» — между высокой эмпатией и сдержанностью; выше чувствительность к стрессу в близких отношениях.', gene:'OXTR rs53576 AG'},
+  {name:'☀️ Солнце / витамин D', verdict:'ПРОВЕРИТЬ уровень', cls:'cand', power:3, basis:'Возможна сниженная эффективность рецептора витамина D — не пренебрегать солнцем и добавками, проверить 25(OH)D.', gene:'VDR BsmI TT + ApaI AA'},
+  {name:'☕ Кофе / кофеин', verdict:'ОСТОРОЖНО · дозировать', cls:'special', power:2, basis:'Средний метаболизатор: кофеин выводится медленнее и накапливается, может усиливать тревогу. ≤2 чашки, не после 14:00.', gene:'CYP1A2 rs762551 AC'},
+  {name:'😴 Сон / режим', verdict:'СЛАБОЕ МЕСТО · беречь', cls:'special', power:2, basis:'Слабее мелатониновый сигнал → склонность к ночной активности. Регулярный режим особенно важен.', gene:'MTNR1B rs10830963 CG'},
+  {name:'🍷 Алкоголь', verdict:'РИСК · минимизировать', cls:'avoid', power:2, basis:'Кратко усиливает дофаминовый отклик → облегчение, но повышенный риск зависимости.', gene:'DRD2 rs1800497 AG'},
+  {name:'🚬 Курение / никотин', verdict:'РИСК зависимости', cls:'avoid', power:2, basis:'Тот же механизм награды: сниженные D2 → выше риск любой зависимости. Специфичных «никотиновых» генов в данных нет.', gene:'DRD2 AG (косвенно)'},
+];
+
+const LOADOUT = [
+  {type:'Главный буст', icon:'🏃', item:'Аэробный спорт', note:'Бег / плавание / вело → ↑ дофамин (D2)', col:'#37e2a0'},
+  {type:'Прокачка', icon:'🆕', item:'Новизна и обучение', note:'Новые проекты вместо рутины', col:'#37e2a0'},
+  {type:'Регенерация', icon:'😴', item:'Режим сна', note:'Беречь циркадный ритм', col:'#5ee0ff'},
+  {type:'Ресурс', icon:'☀️', item:'Солнце / витамин D', note:'Проверить 25(OH)D', col:'#ffd24a'},
+  {type:'🚫 Лимит', icon:'🍷', item:'Алкоголь', forbidden:true, note:'Минимизировать', col:'#ff6b8a'},
+  {type:'🚫 Лимит', icon:'🚬', item:'Курение / никотин', forbidden:true, note:'Высокий риск зависимости', col:'#ff9d3c'},
+];
+
+const QUESTS = [
+  {q:'Почему тянет к новому, а рутина быстро надоедает?', a:'Сниженная D2-доступность + <b>DRD4 T</b> (novelty seeking): рутина даёт меньше дофаминового отклика, новизна — больше.'},
+  {q:'Почему спорт особенно заходит?', a:'Регулярные аэробные нагрузки повышают доступность <b>D2-рецепторов</b> — для этого генотипа это особенно ценно (Robertson 2016).'},
+  {q:'Почему кофе действует дольше обычного?', a:'<b>CYP1A2 AC</b> — средний метаболизатор: кофеин выводится медленнее и накапливается. ≤2 чашки, не после 14:00.'},
+  {q:'Почему важен режим сна?', a:'<b>MTNR1B G</b> — слабее мелатониновый сигнал, склонность к ночной активности. Регулярный режим компенсирует.'},
+  {q:'Почему с алкоголем стоит осторожнее?', a:'При сниженных <b>D2 (DRD2 AG)</b> отклик на алкоголь относительно усилен → краткое облегчение, но выше риск зависимости.'},
+];
+
+const DA = [
+  {ic:'📉', cls:'dn-bad', name:'Тусклая награда (D2↓)', desc:'Меньше D2-рецепторов в стриатуме → удовольствие приглушено, тяга к новизне и сильным стимулам, выше риск зависимости.', gene:'DRD2 rs1800497 AG + rs6277 CC'},
+  {ic:'🆕', cls:'mix', name:'Поиск новизны (ПФК)', desc:'Мезокортикальный путь тянет к новому: рутина даёт мало дофамина, новые задачи — много.', gene:'DRD4 rs1800955 TC'},
+  {ic:'🔥', cls:'dn-bad', name:'Быстрый распад (MAO-A↑)', desc:'Высокая активность MAO-A быстро расщепляет дофамин в синапсе → сигнал короче. У мужчин полный эффект (1 X-копия).', gene:'MAO-A rs6323 T (гемизигота)'},
+  {ic:'🩸', cls:'mix', name:'DA копится, NE меньше', desc:'Сниженная конверсия DA→норадреналин → баланс смещён в сторону дофамина.', gene:'DBH rs1611115 TC'},
+  {ic:'⚖️', cls:'mix', name:'COMT — баланс в ПФК', desc:'Промежуточный клиренс дофамина в префронтальной коре: между «воином» (стабильность) и «тревожником» (пик-производительность).', gene:'COMT rs4680 Val/Met (AG)'},
+  {ic:'🏃', cls:'up', name:'Спорт чинит систему', desc:'Аэробные нагрузки повышают доступность D2-рецепторов — для этого генотипа особенно ценно (Robertson 2016).', gene:'DRD2 + BDNF Val/Val'},
+];
+
+/* =========================================================
+   РЕНДЕР
+   ========================================================= */
+const $ = (s)=>document.querySelector(s);
+const el = (t,c)=>{const e=document.createElement(t); if(c)e.className=c; return e;};
+
+/* ---- hero vitals strip (compact characteristics) ---- */
+function buildHeroVitals(){
+  const box=$('#hero-vitals');
+  STATS.forEach(s=>{
+    const card=el('div','vital'); card.style.setProperty('--c',s.col);
+    card.innerHTML=`
+      <div class="vtop"><div class="vname"><span>${s.ic}</span><span class="vtxt">${s.key}</span></div><div class="vnum">${s.val}</div></div>
+      <div class="vbar"><div class="vfill" data-w="${s.val}" style="color:${s.col};background:linear-gradient(90deg,${s.col},${s.col}cc)"></div></div>
+      <div class="vtier">${s.tier}</div>`;
+    box.appendChild(card);
+  });
+}
+
+/* ---- circular donut gauges ---- */
+function buildDonuts(){
+  const box=$('#donuts'); const R=50, C=2*Math.PI*R;
+  DONUTS.forEach(d=>{
+    const card=el('div','donut'); card.style.setProperty('--c',d.col);
+    card.innerHTML=`
+      <div class="dkind">${d.kind}</div>
+      <div class="ring">
+        <svg viewBox="0 0 118 118">
+          <circle cx="59" cy="59" r="${R}" fill="none" stroke="#0a0e1d" stroke-width="9"/>
+          <circle cx="59" cy="59" r="${R}" fill="none" stroke="${d.col}" stroke-width="9" stroke-linecap="round"
+                  class="don-arc" style="filter:drop-shadow(0 0 6px ${d.col})"
+                  stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${C.toFixed(1)}" data-off="${(C*(1-d.val/100)).toFixed(1)}"/>
+        </svg>
+        <div class="center"><span class="ic">${d.ic}</span><span class="pct">${d.val}</span></div>
+      </div>
+      <div class="dname">${d.name}</div>
+      <div class="dtier">${d.tier}</div>
+      <div class="dgene">⌬ ${d.gene}</div>`;
+    box.appendChild(card);
+  });
+}
+
+/* ---- radar (octagon SVG) ---- */
+function buildRadar(){
+  const S=400, c=S/2, R=140, n=STATS.length;
+  const ang=i=> -Math.PI/2 + i*2*Math.PI/n;
+  const pt=(i,r)=>[c+r*Math.cos(ang(i)), c+r*Math.sin(ang(i))];
+  // crop empty margin around the octagon so the radar fills its panel
+  let svg=`<svg viewBox="0 30 400 348" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Радар характеристик">`;
+  svg+=`<defs><radialGradient id="rg" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#5ee0ff" stop-opacity=".5"/>
+      <stop offset="100%" stop-color="#a78bff" stop-opacity=".18"/></radialGradient></defs>`;
+  [0.25,0.5,0.75,1].forEach(f=>{
+    let p=STATS.map((_,i)=>pt(i,R*f).join(',')).join(' ');
+    svg+=`<polygon points="${p}" fill="none" stroke="#243056" stroke-width="1.3"/>`;
+  });
+  STATS.forEach((s,i)=>{
+    const [x,y]=pt(i,R);
+    svg+=`<line x1="${c}" y1="${c}" x2="${x}" y2="${y}" stroke="#243056" stroke-width="1.3"/>`;
+    const [lx,ly]=pt(i,R+20);
+    const anchor = Math.abs(lx-c)<6 ? 'middle' : (lx>c?'start':'end');
+    svg+=`<text x="${lx}" y="${ly}" fill="#b6c0e0" font-size="16.5" font-weight="600" font-family="Orbitron,sans-serif" text-anchor="${anchor}" dominant-baseline="middle">${s.ic} ${s.key}</text>`;
+  });
+  let dp=STATS.map((s,i)=>pt(i,R*s.val/100).join(',')).join(' ');
+  svg+=`<polygon class="radar-poly" points="${dp}" fill="url(#rg)" stroke="#5ee0ff" stroke-width="3" style="filter:drop-shadow(0 0 9px rgba(94,224,255,.55));opacity:0;transition:opacity 1s ease .3s"/>`;
+  STATS.forEach((s,i)=>{const [x,y]=pt(i,R*s.val/100); svg+=`<circle cx="${x}" cy="${y}" r="5" fill="${s.col}" stroke="#070912" stroke-width="2"/>`;});
+  svg+=`</svg>`;
+  $('#radar').innerHTML=svg;
+  requestAnimationFrame(()=>{const p=document.querySelector('.radar-poly'); if(p)p.style.opacity=1;});
+}
+
+function buildStats(){
+  const box=$('#stats');
+  STATS.forEach(s=>{
+    const row=el('div','stat-row');
+    row.innerHTML=`
+      <div class="sname"><span class="ic">${s.ic}</span>${s.key}</div>
+      <div class="bar"><div class="fill" data-w="${s.val}" style="color:${s.col};background:linear-gradient(90deg,${s.col},${s.col}cc)"></div></div>
+      <div class="sval">${s.tier}</div>
+      <div class="basis">${s.basis}</div>`;
+    box.appendChild(row);
+  });
+}
+
+function buildTraits(list, target, kind){
+  const box=$(target);
+  list.forEach(t=>{
+    const card=el('div','trait '+kind+(t.mini?' mini':''));
+    card.innerHTML=`
+      <div class="ti">${t.ic}</div>
+      <div><div class="tname">${t.name}</div><div class="tdesc">${t.desc}</div><div class="tbasis">⌬ ${t.basis}</div></div>
+      <div class="rar ${t.rar[1]}">${t.rar[0]}</div>`;
+    box.appendChild(card);
+  });
+}
+
+function buildDrugs(){
+  const map={good:'var(--good)',cand:'var(--cand)',bad:'var(--bad)',avoid:'var(--avoid)',special:'var(--special)'};
+  const box=$('#drugs');
+  DRUGS.forEach(d=>{
+    const card=el('div','res'); card.style.setProperty('--c',map[d.cls]);
+    let pips=''; for(let i=0;i<5;i++) pips+=`<span class="pip ${i<d.power?'on':''}"></span>`;
+    card.innerHTML=`
+      <div class="verdict">${d.verdict}</div>
+      <div class="rname">${d.name}</div>
+      <div class="meter">${pips}</div>
+      <div class="rbasis">${d.basis}</div>
+      <div class="rgene">⌬ ${d.gene}</div>`;
+    box.appendChild(card);
+  });
+}
+
+function buildLoadout(){
+  const box=$('#loadout');
+  LOADOUT.forEach(s=>{
+    const slot=el('div','slot'+(s.forbidden?' forbidden':'')); slot.style.setProperty('--c',s.col);
+    slot.innerHTML=`
+      <div class="stype">${s.type}</div><div class="sicon">${s.icon}</div>
+      <div class="sitem">${s.item}</div><div class="snote">${s.note}</div>`;
+    box.appendChild(slot);
+  });
+}
+
+function buildDA(){
+  const box=$('#da-legend');
+  DA.forEach(d=>{
+    const card=el('div','da-node '+d.cls);
+    card.innerHTML=`<div class="di">${d.ic}</div>
+      <div><div class="dn">${d.name}</div><div class="dd">${d.desc}</div><div class="dg">⌬ ${d.gene}</div></div>`;
+    box.appendChild(card);
+  });
+}
+
+function buildQuests(){
+  const box=$('#quests');
+  QUESTS.forEach(q=>{
+    const card=el('div','quest');
+    card.innerHTML=`<div class="qcheck">✔</div><div><div class="qq">${q.q}</div><div class="qa">${q.a}</div></div>`;
+    box.appendChild(card);
+  });
+}
+
+function animate(){
+  requestAnimationFrame(()=>{
+    document.querySelectorAll('.fill,.gfill,.vfill').forEach(f=>{ f.style.width=(f.dataset.w||0)+'%'; });
+    document.querySelectorAll('.don-arc').forEach(a=>{ a.style.transition='stroke-dashoffset 1.6s cubic-bezier(.2,.8,.2,1)'; a.style.strokeDashoffset=a.dataset.off; });
+    const lvl=document.querySelector('.lvl-arc');
+    if(lvl){ lvl.style.transition='stroke-dashoffset 1.8s cubic-bezier(.2,.8,.2,1)'; lvl.style.strokeDashoffset=(326.7*(1-42/120)).toFixed(1); }
+  });
+}
+
+buildHeroVitals(); buildDonuts(); buildRadar(); buildStats();
+/* главное: топ перков и дебаффов по доказательности (легендарные → эпические → …) */
+const RAR_ORD={'Легендарный':0,'Эпический':1,'Клинический':2,'Редкий':3,'Необычный':4};
+const byRar=(a,b)=>(RAR_ORD[a.rar[0]]??9)-(RAR_ORD[b.rar[0]]??9);
+const TOP_BUFFS=[...BUFFS].sort(byRar).slice(0,4).map(t=>({...t,mini:true}));
+const TOP_DEBUFFS=[...DEBUFFS].sort(byRar).slice(0,4).map(t=>({...t,mini:true}));
+buildTraits(TOP_BUFFS,'#buffs-top','buff');
+buildTraits(TOP_DEBUFFS,'#debuffs-top','debuff');
+buildTraits(BUFFS,'#buffs','buff'); buildTraits(DEBUFFS,'#debuffs','debuff');
+buildDA(); buildDrugs(); buildLoadout(); buildQuests();
+/* relocate dopamine block-diagram under the radar (center column) */
+(function(){
+  const slot=$('#da-slot'), panel=$('#da-map-panel');
+  if(slot && panel){ slot.appendChild(panel); panel.style.display=''; }
+})();
+setTimeout(animate, 140);
+</script>
+</body>
+</html>

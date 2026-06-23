@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Health — медицинская база в Markdown</title>
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #0d1117; color: #e6edf3; padding: 24px;
+  }
+  .card {
+    max-width: 640px; width: 100%;
+    background: #161b22; border: 1px solid #30363d; border-radius: 16px;
+    padding: 40px; box-shadow: 0 8px 40px rgba(0,0,0,.4);
+  }
+  h1 { margin: 0 0 8px; font-size: 28px; }
+  p.lead { margin: 0 0 28px; color: #9da7b3; line-height: 1.5; }
+  a.btn {
+    display: inline-block; text-decoration: none;
+    background: linear-gradient(135deg, #37e2a0, #5ee0ff); color: #06231a;
+    font-weight: 700; padding: 14px 26px; border-radius: 12px; font-size: 17px;
+    transition: transform .12s ease;
+  }
+  a.btn:hover { transform: translateY(-2px); }
+  ul.links { margin: 28px 0 0; padding: 0; list-style: none; }
+  ul.links li { margin: 8px 0; }
+  ul.links a { color: #5ee0ff; text-decoration: none; }
+  ul.links a:hover { text-decoration: underline; }
+  .foot { margin-top: 28px; font-size: 13px; color: #6e7781; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Health — медицинская база в Markdown</h1>
+    <p class="lead">Открытый «фреймворк» для ведения личных медицинских записей в виде Markdown-файлов: диагнозы, лечение, обследования, динамика и анализ генетики с помощью AI-ассистента. Без сервера и БД — только файлы.</p>
+    <a class="btn" href="./dashboard/">🧬 Открыть пример дашборда →</a>
+    <ul class="links">
+      <li><a href="https://github.com/Rai220/giga-health-public">Репозиторий на GitHub</a></li>
+      <li><a href="https://github.com/Rai220/giga-health-public/blob/main/AGENTS.md">AGENTS.md — инструкции для AI-ассистента</a></li>
+      <li><a href="https://github.com/Rai220/giga-health-public/blob/main/README.md">README — как начать</a></li>
+    </ul>
+    <p class="foot">Дашборд — игровая визуализация фармакогенетического профиля. Носит образовательный характер и не является медицинской рекомендацией.</p>
+  </div>
+</body>
+</html>
