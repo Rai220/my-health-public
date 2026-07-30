@@ -58,9 +58,15 @@ venv.bak/
 .ruff_cache/
 
 # Генетические данные (большие файлы: FASTQ, VCF, BAM и т.д.)
+# Подробно, что куда кладётся — TEMPLATE/genetic/README.md
 **/genetic/*
 !**/genetic/README.md
 **/full/
+
+# Референсные геномы и аннотации: hg38.fa ~3 ГБ, gencode — сотни МБ.
+# Скачиваются заново; ссылки на источники держать в references/README.md
+references/
+!references/README.md
 
 # Сторонние инструменты (SnpEff и т.д.)
 tools/snpeff/
